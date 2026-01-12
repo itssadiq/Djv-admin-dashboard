@@ -1,1 +1,25 @@
 @import "tailwindcss";
+
+@theme {
+  /* 1. Custom Colors */
+  --color-brand-dark: #0f172a;
+  --color-brand-green: #22c55e;
+  --color-brand-hover: #16a34a;
+
+  /* 2. Custom Animation */
+  --animate-fade-in: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+
+  @keyframes fadeIn {
+    0% {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* 3. Custom Background Image (Select Arrow) */
+  --background-image-select-arrow: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+}
