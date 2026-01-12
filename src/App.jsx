@@ -5,12 +5,15 @@ import {
   Applications,
   Dashboard,
   Industries,
+  Login,
   ManageJobs,
   PostJob,
 } from "./pages";
 
 function App() {
   const location = useLocation();
+
+  const isLoginPage = location.pathname === "/login";
 
   const getTitle = () => {
     switch (location.pathname) {
@@ -28,6 +31,14 @@ function App() {
         return "Overview";
     }
   };
+
+  if (isLoginPage) {
+    return (
+      <Routes>
+        <Route path="/login" element={<Login />} />
+      </Routes>
+    );
+  }
   return (
     <div className="bg-slate-50 text-slate-900 flex h-screen overflow-hidden font-sans">
       <Sidebar />
