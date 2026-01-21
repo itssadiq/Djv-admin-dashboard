@@ -1,16 +1,6 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
 import { LoginForm } from "../components";
 
 const Login = () => {
-  const navigate = useNavigate();
-
-  const handleLogin = (e) => {
-    e.preventDefault();
-    // Simulate successful login -> Go to Dashboard
-    navigate("/dashboard");
-  };
-
   const inputClass =
     "w-full bg-white border border-slate-300 rounded-lg px-4 py-3 text-sm text-slate-800 transition-all shadow-sm focus:border-brand-green focus:ring-4 focus:ring-green-500/15 focus:outline-none";
   const labelClass =
@@ -26,11 +16,7 @@ const Login = () => {
           <p className="text-sm text-slate-500 mt-2">Workspace Admin Access</p>
         </div>
 
-        <LoginForm
-          onLogin={handleLogin}
-          inputClass={inputClass}
-          labelClass={labelClass}
-        />
+        <LoginForm inputClass={inputClass} labelClass={labelClass} />
       </div>
     </div>
   );

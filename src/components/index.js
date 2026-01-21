@@ -3,5 +3,6 @@
 import Header from "./Header";
 import LoginForm from "./LoginForm";
 import Sidebar from "./Sidebar";
+import loginSchema from "./loginSchema";
 
-export { Header, Sidebar, LoginForm };
+export { Header, Sidebar, LoginForm, loginSchema };
