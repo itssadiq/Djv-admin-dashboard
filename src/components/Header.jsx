@@ -1,6 +1,14 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 const Header = ({ title }) => {
+  const navigate = useNavigate();
+  function handleLogout(e) {
+    // Clear any authentication tokens or user data here
+    // For this example, we'll just redirect to the login page
+    e.preventDefault();
+    navigate("/login");
+  }
   return (
     <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-10 shrink-0 z-20">
       <div>
@@ -25,7 +33,10 @@ const Header = ({ title }) => {
             ></path>
           </svg>
         </button>
-        <button className="text-sm font-medium text-slate-500 hover:text-slate-900">
+        <button
+          className="text-sm font-medium text-slate-500 hover:text-slate-900 cursor-pointer"
+          onClick={handleLogout}
+        >
           Logout
         </button>
       </div>
