@@ -1,4 +1,4 @@
-import { Route, Routes, useLocation } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import "./App.css";
 import { Header, Sidebar } from "./components";
 import {
@@ -9,53 +9,35 @@ import {
   ManageJobs,
   PostJob,
 } from "./pages";
+import AdminLayout from "./pages/AdminLayout";
 
 function App() {
-  const location = useLocation();
-
-  const isLoginPage = location.pathname === "/login";
-
-  const getTitle = () => {
-    switch (location.pathname) {
-      case "/":
-        return "Dashboard Overview";
-      case "/post-job":
-        return "Create New Listing";
-      case "/manage-jobs":
-        return "Active Opportunities";
-      case "/applications":
-        return "Candidate Pipeline";
-      case "/industries":
-        return "Industry Management";
-      default:
-        return "Overview";
-    }
-  };
-
-  if (isLoginPage) {
-    return (
-      <Routes>
-        <Route path="/login" element={<Login />} />
-      </Routes>
-    );
-  }
   return (
-    <div className="bg-slate-50 text-slate-900 flex h-screen overflow-hidden font-sans">
-      <Sidebar />
+    <Routes>
+      {/* 1. Public Route: Login Page at root "/" */}
+      <Route path="/" element={<Login />} />
 
-      <main className="flex-1 flex flex-col h-full overflow-hidden relative">
-        <Header title={getTitle()} />
-        <div className="flex-1 overflow-y-auto p-10 pb-24">
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/post-job" element={<PostJob />} />
-            <Route path="/manage-jobs" element={<ManageJobs />} />
-            <Route path="/applications" element={<Applications />} />
-            <Route path="/industries" element={<Industries />} />
-          </Routes>
-        </div>
-      </main>
-    </div>
+      {/* 2. Protected Routes: All Admin pages under "/dashboard" */}
+      <Route path="/dashboard" element={<AdminLayout />}>
+        {/* This renders when url is exactly "/dashboard" */}
+        <Route index element={<Dashboard />} />
+
+        {/* Renders at "/dashboard/post-job" */}
+        <Route path="post-job" element={<PostJob />} />
+
+        {/* Renders at "/dashboard/manage-jobs" */}
+        <Route path="manage-jobs" element={<ManageJobs />} />
+
+        {/* Renders at "/dashboard/applications" */}
+        <Route path="applications" element={<Applications />} />
+
+        {/* Renders at "/dashboard/industries" */}
+        <Route path="industries" element={<Industries />} />
+      </Route>
+
+      {/* 3. Fallback: If unknown route, go to login */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
 

@@ -22,7 +22,8 @@ const Sidebar = () => {
       </div>
 
       <nav className="flex-1 overflow-y-auto py-8 px-4 space-y-2">
-        <NavLink to="/" className={getLinkClass}>
+        {/* 1. Dashboard Root (Note the 'end' prop for exact matching) */}
+        <NavLink to="/dashboard" end className={getLinkClass}>
           <svg
             className="w-5 h-5"
             fill="none"
@@ -33,7 +34,7 @@ const Sidebar = () => {
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth="2"
-              d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012-2h2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+              d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012-2h2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012-2h2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
             ></path>
           </svg>
           Dashboard
@@ -43,7 +44,8 @@ const Sidebar = () => {
           Management
         </div>
 
-        <NavLink to="/post-job" className={getLinkClass}>
+        {/* 2. Nested Routes */}
+        <NavLink to="/dashboard/post-job" className={getLinkClass}>
           <svg
             className="w-5 h-5"
             fill="none"
@@ -59,7 +61,7 @@ const Sidebar = () => {
           </svg>
           Post a Job
         </NavLink>
-        <NavLink to="/manage-jobs" className={getLinkClass}>
+        <NavLink to="/dashboard/manage-jobs" className={getLinkClass}>
           <svg
             className="w-5 h-5"
             fill="none"
@@ -75,7 +77,7 @@ const Sidebar = () => {
           </svg>
           Manage Jobs
         </NavLink>
-        <NavLink to="/applications" className={getLinkClass}>
+        <NavLink to="/dashboard/applications" className={getLinkClass}>
           <svg
             className="w-5 h-5"
             fill="none"
@@ -91,7 +93,7 @@ const Sidebar = () => {
           </svg>
           Applications
         </NavLink>
-        <NavLink to="/industries" className={getLinkClass}>
+        <NavLink to="/dashboard/industries" className={getLinkClass}>
           <svg
             className="w-5 h-5"
             fill="none"
