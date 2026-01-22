@@ -1,43 +1,49 @@
-import { Navigate, Route, Routes } from "react-router-dom";
-import "./App.css";
-import { Header, Sidebar } from "./components";
-import {
-  Applications,
-  Dashboard,
-  Industries,
-  Login,
-  ManageJobs,
-  PostJob,
-} from "./pages";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { Provider } from "react-redux";
+import { store } from "./store/store";
+
+// Components
+import AuthInitializer from "./components/AuthInitializer";
+import ProtectedRoute from "./components/ProtectedRoute";
+// Pages
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import PostJob from "./pages/PostJob";
+import ManageJobs from "./pages/ManageJobs";
+import Applications from "./pages/Applications";
+import Industries from "./pages/Industries";
 import AdminLayout from "./pages/AdminLayout";
 
 function App() {
   return (
-    <Routes>
-      {/* 1. Public Route: Login Page at root "/" */}
-      <Route path="/" element={<Login />} />
+    <Provider store={store}>
+      <AuthInitializer>
+        <Routes>
+          {/* Public Route */}
+          <Route path="/login" element={<Login />} />
 
-      {/* 2. Protected Routes: All Admin pages under "/dashboard" */}
-      <Route path="/dashboard" element={<AdminLayout />}>
-        {/* This renders when url is exactly "/dashboard" */}
-        <Route index element={<Dashboard />} />
+          {/* Protected Routes with Admin Layout */}
+          <Route element={<ProtectedRoute />}>
+            <Route element={<AdminLayout />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/dashboard/post-job" element={<PostJob />} />
+              <Route path="/dashboard/manage-jobs" element={<ManageJobs />} />
+              <Route
+                path="/dashboard/applications"
+                element={<Applications />}
+              />
+              <Route path="/dashboard/industries" element={<Industries />} />
+            </Route>
+          </Route>
 
-        {/* Renders at "/dashboard/post-job" */}
-        <Route path="post-job" element={<PostJob />} />
+          {/* Redirect root to dashboard */}
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
-        {/* Renders at "/dashboard/manage-jobs" */}
-        <Route path="manage-jobs" element={<ManageJobs />} />
-
-        {/* Renders at "/dashboard/applications" */}
-        <Route path="applications" element={<Applications />} />
-
-        {/* Renders at "/dashboard/industries" */}
-        <Route path="industries" element={<Industries />} />
-      </Route>
-
-      {/* 3. Fallback: If unknown route, go to login */}
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+          {/* 404 - Redirect to dashboard */}
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
+      </AuthInitializer>
+    </Provider>
   );
 }
 

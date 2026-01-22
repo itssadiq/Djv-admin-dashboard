@@ -1,7 +1,17 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { selectCurrentUser } from "../features/authSlice";
 
 const Sidebar = () => {
+  const user = useSelector(selectCurrentUser);
+
+  // Get initials from email
+  const getInitials = (email) => {
+    if (!email) return "AD";
+    return email.substring(0, 2).toUpperCase();
+  };
+
   const getLinkClass = ({ isActive }) => {
     const baseClass =
       "group flex w-full items-center gap-4 rounded-lg px-4 py-3.5 text-sm font-medium transition-all border";
@@ -22,7 +32,7 @@ const Sidebar = () => {
       </div>
 
       <nav className="flex-1 overflow-y-auto py-8 px-4 space-y-2">
-        {/* 1. Dashboard Root (Note the 'end' prop for exact matching) */}
+        {/* Dashboard */}
         <NavLink to="/dashboard" end className={getLinkClass}>
           <svg
             className="w-5 h-5"
@@ -34,7 +44,7 @@ const Sidebar = () => {
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth="2"
-              d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012-2h2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012-2h2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+              d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
             ></path>
           </svg>
           Dashboard
@@ -44,7 +54,6 @@ const Sidebar = () => {
           Management
         </div>
 
-        {/* 2. Nested Routes */}
         <NavLink to="/dashboard/post-job" className={getLinkClass}>
           <svg
             className="w-5 h-5"
@@ -61,6 +70,7 @@ const Sidebar = () => {
           </svg>
           Post a Job
         </NavLink>
+
         <NavLink to="/dashboard/manage-jobs" className={getLinkClass}>
           <svg
             className="w-5 h-5"
@@ -77,6 +87,7 @@ const Sidebar = () => {
           </svg>
           Manage Jobs
         </NavLink>
+
         <NavLink to="/dashboard/applications" className={getLinkClass}>
           <svg
             className="w-5 h-5"
@@ -93,6 +104,7 @@ const Sidebar = () => {
           </svg>
           Applications
         </NavLink>
+
         <NavLink to="/dashboard/industries" className={getLinkClass}>
           <svg
             className="w-5 h-5"
@@ -111,14 +123,17 @@ const Sidebar = () => {
         </NavLink>
       </nav>
 
+      {/* User Info Section */}
       <div className="p-6 border-t border-slate-800">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-sm font-bold border border-slate-600">
-            JD
+            {getInitials(user?.email)}
           </div>
           <div>
-            <p className="text-sm font-semibold">John Doe</p>
-            <p className="text-xs text-slate-400">Admin</p>
+            <p className="text-sm font-semibold">
+              {user?.email?.split("@")[0] || "Admin"}
+            </p>
+            <p className="text-xs text-slate-400">{user?.email || "Admin"}</p>
           </div>
         </div>
       </div>
