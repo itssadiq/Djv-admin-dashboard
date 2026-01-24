@@ -19,7 +19,7 @@ function AuthInitializer({ children }) {
           const { data: adminData } = await supabase
             .from("admins")
             .select("*")
-            .eq("uuid", session.user.id)
+            .eq("UUID", session.user.id)
             .single();
 
           if (adminData) {
@@ -47,7 +47,7 @@ function AuthInitializer({ children }) {
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event) => {
       if (event === "SIGNED_OUT") {
         dispatch(logout());
       }
