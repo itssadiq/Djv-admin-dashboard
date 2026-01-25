@@ -1,18 +1,16 @@
+// src/components/ProtectedRoute.jsx
+
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { selectIsAuthenticated, selectIsLoading } from "../features/authSlice";
-import { useGetSessionQuery } from "../services/auth";
 
 function ProtectedRoute() {
   const location = useLocation();
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const isLoading = useSelector(selectIsLoading);
 
-  // Check for existing session on mount
-  const { isLoading: isSessionLoading } = useGetSessionQuery();
-
-  // Show loading spinner while checking authentication
-  if (isLoading || isSessionLoading) {
+  // Show loading only during initial auth check
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="flex flex-col items-center gap-4">
@@ -47,7 +45,6 @@ function ProtectedRoute() {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Render child routes
   return <Outlet />;
 }
 

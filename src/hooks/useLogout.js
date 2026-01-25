@@ -1,20 +1,29 @@
+// src/hooks/useLogout.js
+
+import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { useLogoutMutation } from "../services/auth";
+import { useDispatch } from "react-redux";
+import { logout as logoutAction } from "../features/authSlice";
+import { supabase } from "../lib/config";
 
 export function useLogout() {
   const navigate = useNavigate();
-  const [logoutMutation, { isLoading }] = useLogoutMutation();
+  const dispatch = useDispatch();
 
-  const handleLogout = async () => {
+  const logout = useCallback(async () => {
+    // Clear Redux state first
+    dispatch(logoutAction());
+
+    // Try to sign out from Supabase (ignore errors - session might already be gone)
     try {
-      await logoutMutation().unwrap();
-      navigate("/login", { replace: true });
+      await supabase.auth.signOut();
     } catch (error) {
-      console.error("Logout failed:", error);
-      // Force navigation even if logout fails
-      navigate("/login", { replace: true });
+      console.log("Supabase signout:", error.message);
     }
-  };
 
-  return { logout: handleLogout, isLoading };
+    // Always redirect to login
+    navigate("/login", { replace: true });
+  }, [dispatch, navigate]);
+
+  return { logout };
 }
