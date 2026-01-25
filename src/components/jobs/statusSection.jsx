@@ -1,5 +1,3 @@
-// src/components/jobs/StatusSection.jsx
-
 import FormSection from "./FormSection";
 import { jobStatuses } from "../../schemas/editJobSchema";
 import {
