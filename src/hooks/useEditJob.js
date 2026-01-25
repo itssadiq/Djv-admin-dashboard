@@ -9,6 +9,7 @@ import {
   useGetJobQuery,
   useUpdateJobMutation,
   useUploadLogoMutation,
+  useDeleteLogoMutation,
 } from "../services/jobsApi";
 
 export const useEditJob = () => {
@@ -16,6 +17,8 @@ export const useEditJob = () => {
   const navigate = useNavigate();
 
   const [logoPreview, setLogoPreview] = useState(null);
+  const [originalLogoUrl, setOriginalLogoUrl] = useState(null);
+  const [newLogoFile, setNewLogoFile] = useState(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitError, setSubmitError] = useState(null);
 
@@ -27,6 +30,7 @@ export const useEditJob = () => {
   } = useGetJobQuery(id);
   const [updateJob, { isLoading: isUpdating }] = useUpdateJobMutation();
   const [uploadLogo] = useUploadLogoMutation();
+  const [deleteLogo] = useDeleteLogoMutation();
 
   const form = useForm({
     resolver: zodResolver(editJobSchema),
@@ -60,6 +64,7 @@ export const useEditJob = () => {
 
       if (job.company_logo) {
         setLogoPreview(job.company_logo);
+        setOriginalLogoUrl(job.company_logo);
       }
     }
   }, [job, reset]);
@@ -68,6 +73,7 @@ export const useEditJob = () => {
     const file = e.target.files?.[0];
     if (file) {
       setValue("company_logo", file);
+      setNewLogoFile(file);
       setLogoPreview(URL.createObjectURL(file));
     }
   };
@@ -81,11 +87,17 @@ export const useEditJob = () => {
       setSubmitError(null);
       setSubmitSuccess(false);
 
-      // Upload new logo if provided
-      let logoUrl = job?.company_logo || null;
-      if (data.company_logo && data.company_logo instanceof File) {
-        const result = await uploadLogo(data.company_logo).unwrap();
-        logoUrl = result;
+      let logoUrl = originalLogoUrl;
+
+      // If user selected a new logo
+      if (newLogoFile) {
+        // Delete old logo from storage if exists
+        if (originalLogoUrl) {
+          await deleteLogo(originalLogoUrl).unwrap();
+        }
+
+        // Upload new logo
+        logoUrl = await uploadLogo(newLogoFile).unwrap();
       }
 
       // Destructure only needed fields
@@ -129,10 +141,21 @@ export const useEditJob = () => {
       // Update job
       await updateJob(jobData).unwrap();
 
-      // Success
-      setSubmitSuccess(true);
-      setTimeout(() => scrollToTop(), 100);
-      setTimeout(() => setSubmitSuccess(false), 5000);
+      // Reset form
+      reset();
+      setLogoPreview(null);
+      setNewLogoFile(null);
+
+      // Scroll to top and show success
+      setTimeout(() => {
+        scrollToTop();
+        setSubmitSuccess(true);
+      }, 100);
+
+      // Redirect to manage jobs after 2 seconds
+      setTimeout(() => {
+        navigate("/dashboard/manage-jobs");
+      }, 2000);
     } catch (err) {
       setSubmitError(err.message || "Failed to update job. Please try again.");
       setTimeout(() => scrollToTop(), 100);

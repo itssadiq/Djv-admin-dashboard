@@ -3,6 +3,63 @@
 import { createApi, fakeBaseQuery } from "@reduxjs/toolkit/query/react";
 import { supabase } from "../lib/config";
 
+// Helper function to extract file path from URL
+const getFilePathFromUrl = (url) => {
+  if (!url) return null;
+
+  try {
+    // Handle different URL formats
+    // Example: https://xxx.supabase.co/storage/v1/object/public/logos/company-logos/123-abc.png
+
+    const urlObj = new URL(url);
+    const pathname = urlObj.pathname;
+
+    // Try to match the path after 'logos/'
+    const patterns = [
+      /\/storage\/v1\/object\/public\/logos\/(.+)/,
+      /\/logos\/(.+)/,
+    ];
+
+    for (const pattern of patterns) {
+      const match = pathname.match(pattern);
+      if (match && match[1]) {
+        return match[1];
+      }
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Error parsing logo URL:", error);
+    return null;
+  }
+};
+
+// Helper function to delete logo from storage
+const deleteLogoFromStorage = async (logoUrl) => {
+  if (!logoUrl) return false;
+
+  const filePath = getFilePathFromUrl(logoUrl);
+
+  if (!filePath) {
+    console.error("Could not extract file path from URL:", logoUrl);
+    return false;
+  }
+
+  try {
+    const { error } = await supabase.storage.from("logos").remove([filePath]);
+
+    if (error) {
+      console.error("Supabase storage delete error:", error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Failed to delete logo:", error);
+    return false;
+  }
+};
+
 export const jobsApi = createApi({
   reducerPath: "jobsApi",
   baseQuery: fakeBaseQuery(),
@@ -49,6 +106,18 @@ export const jobsApi = createApi({
           return { data: urlData.publicUrl };
         } catch (error) {
           return { error: { message: "Failed to upload logo" } };
+        }
+      },
+    }),
+
+    // Delete logo from storage
+    deleteLogo: builder.mutation({
+      async queryFn(logoUrl) {
+        try {
+          const success = await deleteLogoFromStorage(logoUrl);
+          return { data: { success } };
+        } catch (error) {
+          return { error: { message: "Failed to delete logo" } };
         }
       },
     }),
@@ -116,13 +185,37 @@ export const jobsApi = createApi({
       ],
     }),
 
-    // Delete job
+    // Delete job (with logo cleanup)
     deleteJob: builder.mutation({
       async queryFn(id) {
         try {
-          const { error } = await supabase.from("jobs").delete().eq("id", id);
+          // First, get the job to find the logo URL
+          const { data: job, error: fetchError } = await supabase
+            .from("jobs")
+            .select("company_logo")
+            .eq("id", id)
+            .single();
 
-          if (error) throw error;
+          if (fetchError) {
+            console.error("Error fetching job:", fetchError);
+            throw fetchError;
+          }
+
+          // Delete logo from storage if exists
+          if (job?.company_logo) {
+            await deleteLogoFromStorage(job.company_logo);
+          }
+
+          // Delete the job from database
+          const { error: deleteError } = await supabase
+            .from("jobs")
+            .delete()
+            .eq("id", id);
+
+          if (deleteError) {
+            console.error("Error deleting job:", deleteError);
+            throw deleteError;
+          }
 
           return { data: { success: true } };
         } catch (error) {
@@ -137,6 +230,7 @@ export const jobsApi = createApi({
 export const {
   useCreateJobMutation,
   useUploadLogoMutation,
+  useDeleteLogoMutation,
   useGetJobsQuery,
   useGetJobQuery,
   useUpdateJobMutation,

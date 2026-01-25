@@ -1,5 +1,9 @@
+// src/hooks/useManageJobs.js
+
 import { useState, useMemo, useCallback } from "react";
 import { useGetJobsQuery, useDeleteJobMutation } from "../services/jobsApi";
+
+const JOBS_PER_PAGE = 10;
 
 export const useManageJobs = () => {
   const { data: jobs = [], isLoading, isError, error } = useGetJobsQuery();
@@ -11,6 +15,9 @@ export const useManageJobs = () => {
   const [industryFilter, setIndustryFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Delete confirmation state
   const [deleteModal, setDeleteModal] = useState({
@@ -65,6 +72,24 @@ export const useManageJobs = () => {
     typeFilter,
   ]);
 
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredJobs.length / JOBS_PER_PAGE);
+
+  const paginatedJobs = useMemo(() => {
+    const startIndex = (currentPage - 1) * JOBS_PER_PAGE;
+    const endIndex = startIndex + JOBS_PER_PAGE;
+    return filteredJobs.slice(startIndex, endIndex);
+  }, [filteredJobs, currentPage]);
+
+  // Reset to page 1 when filters change
+  const handleFilterChange = useCallback(
+    (setter) => (value) => {
+      setter(value);
+      setCurrentPage(1);
+    },
+    [],
+  );
+
   // Clear all filters
   const clearFilters = useCallback(() => {
     setSearchQuery("");
@@ -72,6 +97,13 @@ export const useManageJobs = () => {
     setIndustryFilter("");
     setStatusFilter("");
     setTypeFilter("");
+    setCurrentPage(1);
+  }, []);
+
+  // Page change handler
+  const handlePageChange = useCallback((page) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
   // Open delete confirmation modal
@@ -90,31 +122,51 @@ export const useManageJobs = () => {
       try {
         await deleteJob(deleteModal.jobId).unwrap();
         closeDeleteModal();
+
+        // Adjust current page if needed
+        const newTotalPages = Math.ceil(
+          (filteredJobs.length - 1) / JOBS_PER_PAGE,
+        );
+        if (currentPage > newTotalPages && newTotalPages > 0) {
+          setCurrentPage(newTotalPages);
+        }
       } catch (err) {
         console.error("Failed to delete job:", err);
       }
     }
-  }, [deleteModal.jobId, deleteJob, closeDeleteModal]);
+  }, [
+    deleteModal.jobId,
+    deleteJob,
+    closeDeleteModal,
+    filteredJobs.length,
+    currentPage,
+  ]);
 
   return {
     // Data
-    jobs: filteredJobs,
+    jobs: paginatedJobs,
+    totalJobs: filteredJobs.length,
     isLoading,
     isError,
     error,
     isDeleting,
 
+    // Pagination
+    currentPage,
+    totalPages,
+    handlePageChange,
+
     // Filter states
     searchQuery,
-    setSearchQuery,
+    setSearchQuery: handleFilterChange(setSearchQuery),
     companyFilter,
-    setCompanyFilter,
+    setCompanyFilter: handleFilterChange(setCompanyFilter),
     industryFilter,
-    setIndustryFilter,
+    setIndustryFilter: handleFilterChange(setIndustryFilter),
     statusFilter,
-    setStatusFilter,
+    setStatusFilter: handleFilterChange(setStatusFilter),
     typeFilter,
-    setTypeFilter,
+    setTypeFilter: handleFilterChange(setTypeFilter),
 
     // Filter options
     filterOptions,

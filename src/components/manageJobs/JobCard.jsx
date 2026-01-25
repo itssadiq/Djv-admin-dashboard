@@ -22,7 +22,6 @@ const JobCard = ({ job, onDelete }) => {
           !isActive ? "opacity-70" : ""
         }`}
       >
-        {/* Company Logo */}
         <div
           className={`w-12 h-12 rounded-lg ${
             isActive ? "bg-slate-100" : "bg-slate-200"
@@ -47,7 +46,6 @@ const JobCard = ({ job, onDelete }) => {
           )}
         </div>
 
-        {/* Title & Company */}
         <div>
           <h4
             className={`text-base font-bold ${
@@ -70,7 +68,6 @@ const JobCard = ({ job, onDelete }) => {
 
       {/* Job Details */}
       <div className="flex items-center justify-between w-full md:w-2/3">
-        {/* Job Type */}
         <div className={!isActive ? "opacity-70" : ""}>
           <span className="text-xs font-bold text-slate-400 uppercase block mb-1">
             Type
@@ -86,7 +83,6 @@ const JobCard = ({ job, onDelete }) => {
           </span>
         </div>
 
-        {/* Status */}
         <div>
           <span className="text-xs font-bold text-slate-400 uppercase block mb-1">
             Status
@@ -102,7 +98,6 @@ const JobCard = ({ job, onDelete }) => {
           </span>
         </div>
 
-        {/* Applicants */}
         <div className={`text-center ${!isActive ? "opacity-70" : ""}`}>
           <span className="text-xs font-bold text-slate-400 uppercase block mb-1">
             Applicants
@@ -118,10 +113,9 @@ const JobCard = ({ job, onDelete }) => {
 
         {/* Actions */}
         <div className="flex gap-2">
-          {/* Edit Button */}
           <button
             onClick={handleEdit}
-            className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded transition"
+            className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded transition cursor-pointer"
             title="Edit job"
           >
             <svg
@@ -139,11 +133,10 @@ const JobCard = ({ job, onDelete }) => {
             </svg>
           </button>
 
-          {/* Delete Button - Only show for active jobs */}
           {isActive && (
             <button
               onClick={() => onDelete(job.id, job.title)}
-              className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded transition"
+              className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded transition cursor-pointer"
               title="Delete job"
             >
               <svg

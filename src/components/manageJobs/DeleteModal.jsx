@@ -1,18 +1,53 @@
 // src/components/manageJobs/DeleteModal.jsx
 
+import { useEffect } from "react";
+import { createPortal } from "react-dom";
+
 const DeleteModal = ({ isOpen, jobTitle, onClose, onConfirm, isDeleting }) => {
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-        onClick={onClose}
-      />
-
+  // Use Portal to render modal at document body level
+  return createPortal(
+    <div
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: "100vw",
+        height: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "rgba(0, 0, 0, 0.3)",
+        zIndex: 99999,
+      }}
+    >
       {/* Modal */}
-      <div className="relative bg-white rounded-2xl shadow-xl max-w-md w-full mx-4 p-6 animate-fade-in">
+      <div
+        style={{
+          backgroundColor: "white",
+          borderRadius: "16px",
+          padding: "24px",
+          maxWidth: "400px",
+          width: "calc(100% - 32px)",
+          boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+        }}
+      >
         {/* Icon */}
         <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
           <svg
@@ -45,14 +80,14 @@ const DeleteModal = ({ isOpen, jobTitle, onClose, onConfirm, isDeleting }) => {
           <button
             onClick={onClose}
             disabled={isDeleting}
-            className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition disabled:opacity-50"
+            className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition disabled:opacity-50 cursor-pointer"
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
             disabled={isDeleting}
-            className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-red-600 hover:bg-red-700 transition disabled:opacity-50 flex items-center justify-center gap-2"
+            className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-red-600 hover:bg-red-700 transition disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
           >
             {isDeleting ? (
               <>
@@ -83,7 +118,8 @@ const DeleteModal = ({ isOpen, jobTitle, onClose, onConfirm, isDeleting }) => {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 };
 

@@ -69,7 +69,7 @@ const EditJob = () => {
           </p>
           <button
             onClick={handleCancel}
-            className="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-red-600 hover:bg-red-700 transition"
+            className="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-red-600 hover:bg-red-700 transition cursor-pointer"
           >
             Back to Manage Jobs
           </button>
@@ -84,7 +84,7 @@ const EditJob = () => {
       <div className="mb-6">
         <button
           onClick={handleCancel}
-          className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 mb-4"
+          className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 mb-4 cursor-pointer"
         >
           <svg
             className="w-4 h-4"
@@ -107,7 +107,7 @@ const EditJob = () => {
       {submitSuccess && (
         <SuccessMessage
           message="Job updated successfully!"
-          submessage="Your changes have been saved."
+          submessage="Redirecting to Manage Jobs..."
           onClose={() => setSubmitSuccess(false)}
         />
       )}
@@ -120,63 +120,66 @@ const EditJob = () => {
         />
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <BasicInfoSection
-          register={register}
-          errors={errors}
-          logoPreview={logoPreview}
-          onLogoChange={handleLogoChange}
-        />
+      {/* Hide form when success */}
+      {!submitSuccess && (
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <BasicInfoSection
+            register={register}
+            errors={errors}
+            logoPreview={logoPreview}
+            onLogoChange={handleLogoChange}
+          />
 
-        <JobDetailsSection register={register} errors={errors} />
+          <JobDetailsSection register={register} errors={errors} />
 
-        <CompensationSection register={register} errors={errors} />
+          <CompensationSection register={register} errors={errors} />
 
-        <StatusSection register={register} errors={errors} />
+          <StatusSection register={register} errors={errors} />
 
-        {/* Action Buttons */}
-        <div className="flex items-center justify-between pt-4">
-          <button
-            type="button"
-            onClick={handleCancel}
-            className="px-6 py-3 rounded-xl text-sm font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 transition"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={isUpdating}
-            className="px-8 py-3 rounded-xl text-sm font-semibold text-white bg-brand-green hover:bg-brand-hover shadow-lg shadow-green-500/25 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
-          >
-            {isUpdating ? (
-              <span className="flex items-center gap-2">
-                <svg
-                  className="animate-spin w-4 h-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  />
-                </svg>
-                Saving...
-              </span>
-            ) : (
-              "Save Changes"
-            )}
-          </button>
-        </div>
-      </form>
+          {/* Action Buttons */}
+          <div className="flex items-center justify-between pt-4">
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="px-6 py-3 rounded-xl text-sm font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 transition cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isUpdating}
+              className="px-8 py-3 rounded-xl text-sm font-semibold text-white bg-brand-green hover:bg-brand-hover shadow-lg shadow-green-500/25 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 cursor-pointer"
+            >
+              {isUpdating ? (
+                <span className="flex items-center gap-2">
+                  <svg
+                    className="animate-spin w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
+                  </svg>
+                  Saving...
+                </span>
+              ) : (
+                "Save Changes"
+              )}
+            </button>
+          </div>
+        </form>
+      )}
     </section>
   );
 };

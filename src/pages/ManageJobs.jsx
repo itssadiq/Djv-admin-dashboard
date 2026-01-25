@@ -6,15 +6,20 @@ import {
   JobsList,
   DeleteModal,
   ErrorState,
+  Pagination,
 } from "../components/manageJobs";
 
 const ManageJobs = () => {
   const {
     jobs,
+    totalJobs,
     isLoading,
     isError,
     error,
     isDeleting,
+    currentPage,
+    totalPages,
+    handlePageChange,
     searchQuery,
     setSearchQuery,
     companyFilter,
@@ -65,14 +70,23 @@ const ManageJobs = () => {
           <p className="text-sm text-slate-500">
             Showing{" "}
             <span className="font-semibold text-slate-700">{jobs.length}</span>{" "}
-            job
-            {jobs.length !== 1 ? "s" : ""}
+            of <span className="font-semibold text-slate-700">{totalJobs}</span>{" "}
+            job{totalJobs !== 1 ? "s" : ""}
           </p>
         </div>
       )}
 
       {/* Jobs List */}
       <JobsList jobs={jobs} isLoading={isLoading} onDelete={openDeleteModal} />
+
+      {/* Pagination */}
+      {!isLoading && totalJobs > 0 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+        />
+      )}
 
       {/* Delete Confirmation Modal */}
       <DeleteModal
