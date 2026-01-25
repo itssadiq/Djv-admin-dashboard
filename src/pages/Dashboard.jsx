@@ -1,74 +1,77 @@
-import React from "react";
+// src/pages/Dashboard.jsx
+
+import { useDashboardStats } from "../hooks/useDashboardStats";
+import {
+  StatsGrid,
+  QuickStats,
+  RecentJobs,
+  TopIndustries,
+  TopCompanies,
+  JobTypesChart,
+} from "../components/dashboard";
 
 const Dashboard = () => {
+  const { stats, isLoading, isError, error } = useDashboardStats();
+
+  if (isError) {
+    return (
+      <section className="animate-fade-in">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-8 text-center">
+          <svg
+            className="w-12 h-12 text-red-400 mx-auto mb-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="1.5"
+              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <h3 className="text-lg font-semibold text-red-800 mb-1">
+            Failed to load dashboard
+          </h3>
+          <p className="text-sm text-red-600">
+            {error?.message || "Something went wrong. Please try again."}
+          </p>
+        </div>
+      </section>
+    );
+  }
+
   return (
-    <section className="animate-fade-in space-y-8">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between h-32">
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-            Total Jobs
-          </span>
-          <div className="flex items-end justify-between">
-            <span className="text-3xl font-bold text-slate-800">1,248</span>
-            <span className="text-xs text-green-600 font-medium bg-green-50 px-2 py-1 rounded">
-              +12%
-            </span>
-          </div>
+    <section className="animate-fade-in space-y-6">
+      {/* Main Stats */}
+      <StatsGrid stats={stats} isLoading={isLoading} />
+
+      {/* Quick Stats */}
+      <QuickStats stats={stats} isLoading={isLoading} />
+
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Recent Jobs - Takes 2 columns */}
+        <div className="lg:col-span-2">
+          <RecentJobs jobs={stats.recentJobs} isLoading={isLoading} />
         </div>
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between h-32 border-b-4 border-b-brand-green">
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-            Active Jobs
-          </span>
-          <div className="flex items-end justify-between">
-            <span className="text-3xl font-bold text-brand-green">856</span>
-          </div>
-        </div>
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between h-32">
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-            Inactive
-          </span>
-          <div className="flex items-end justify-between">
-            <span className="text-3xl font-bold text-slate-400">392</span>
-          </div>
-        </div>
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between h-32">
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-            Total Applicants
-          </span>
-          <div className="flex items-end justify-between">
-            <span className="text-3xl font-bold text-slate-800">12.5k</span>
-            <svg
-              className="w-5 h-5 text-slate-300"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-              ></path>
-            </svg>
-          </div>
+
+        {/* Top Industries */}
+        <div>
+          <TopIndustries
+            industries={stats.topIndustries}
+            isLoading={isLoading}
+          />
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 h-96 flex items-center justify-center flex-col text-slate-300">
-        <svg
-          className="w-16 h-16 mb-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="1.5"
-            d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"
-          ></path>
-        </svg>
-        <span className="text-sm font-medium">Analytics Chart Placeholder</span>
+      {/* Bottom Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Job Types Chart */}
+        <JobTypesChart jobsByType={stats.jobsByType} isLoading={isLoading} />
+
+        {/* Top Companies */}
+        <TopCompanies companies={stats.topCompanies} isLoading={isLoading} />
       </div>
     </section>
   );
