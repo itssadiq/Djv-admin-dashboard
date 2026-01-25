@@ -13,6 +13,7 @@ import ManageJobs from "./pages/ManageJobs";
 import Applications from "./pages/Applications";
 import Industries from "./pages/Industries";
 import AdminLayout from "./pages/AdminLayout";
+import EditJob from "./pages/EditJob";
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
             <Route element={<AdminLayout />}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/dashboard/post-job" element={<PostJob />} />
+              <Route path="/dashboard/edit-job/:id" element={<EditJob />} />
               <Route path="/dashboard/manage-jobs" element={<ManageJobs />} />
               <Route
                 path="/dashboard/applications"
