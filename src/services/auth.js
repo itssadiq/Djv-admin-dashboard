@@ -18,7 +18,7 @@ export const authApi = createApi({
             });
 
           if (authError) {
-            console.log("Auth Error:", authError);
+            console.log("Auth Error");
             return {
               error: {
                 message: authError.message,
@@ -47,8 +47,9 @@ export const authApi = createApi({
           }
 
           if (!adminData || adminData.length === 0) {
-            console.log("❌ User not found in admins table");
-            console.log("Looking for UUID:", userId);
+            console.log(
+              "❌ You don't have permission to access the admin dashboard.",
+            );
             await supabase.auth.signOut();
             return {
               error: {
