@@ -1,3 +1,5 @@
+// src/components/jobs/FormSection.jsx
+
 const FormSection = ({ number, title, subtitle, children }) => {
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">

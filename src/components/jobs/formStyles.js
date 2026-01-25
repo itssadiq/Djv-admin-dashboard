@@ -1,3 +1,5 @@
+// src/components/jobs/formStyles.js
+
 export const inputClass =
   "w-full bg-white border border-slate-200 rounded-xl px-4 py-3.5 text-sm text-slate-800 shadow-sm focus:border-brand-green focus:ring-4 focus:ring-green-500/10 focus:outline-none placeholder:text-slate-400";
 
