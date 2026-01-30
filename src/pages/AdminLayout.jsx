@@ -1,5 +1,5 @@
 import { Outlet, useLocation } from "react-router-dom";
-import { Header, Sidebar } from ".";
+import { Header, Sidebar } from "../components";
 
 const AdminLayout = () => {
   const location = useLocation();

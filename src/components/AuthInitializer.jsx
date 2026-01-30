@@ -1,5 +1,3 @@
-// src/components/AuthInitializer.jsx
-
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { supabase } from "../lib/config";
@@ -9,8 +7,8 @@ function AuthInitializer({ children }) {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    // Initial session check on app load
-    const initializeAuth = async () => {
+    // Check initial session
+    const checkSession = async () => {
       try {
         const {
           data: { session },
@@ -20,7 +18,7 @@ function AuthInitializer({ children }) {
           // Verify admin status
           const { data: adminData } = await supabase
             .from("admins")
-            .select("UUID")
+            .select("*")
             .eq("UUID", session.user.id)
             .single();
 
@@ -40,39 +38,18 @@ function AuthInitializer({ children }) {
           dispatch(setLoading(false));
         }
       } catch (error) {
-        console.error("Auth initialization error:", error);
         dispatch(setLoading(false));
       }
     };
 
-    initializeAuth();
+    checkSession();
 
-    // Listen for auth state changes (handles session expiry, sign out, etc.)
+    // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === "SIGNED_OUT" || !session) {
+    } = supabase.auth.onAuthStateChange(async (event) => {
+      if (event === "SIGNED_OUT") {
         dispatch(logout());
-      } else if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
-        // Verify admin status
-        const { data: adminData } = await supabase
-          .from("admins")
-          .select("UUID")
-          .eq("UUID", session.user.id)
-          .single();
-
-        if (adminData) {
-          dispatch(
-            setCredentials({
-              id: session.user.id,
-              email: session.user.email,
-              accessToken: session.access_token,
-            }),
-          );
-        } else {
-          await supabase.auth.signOut();
-          dispatch(logout());
-        }
       }
     });
 

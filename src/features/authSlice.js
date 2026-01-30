@@ -1,12 +1,10 @@
-// src/features/authSlice.js
-
 import { createSlice } from "@reduxjs/toolkit";
 import { authApi } from "../services/auth";
 
 const initialState = {
   user: null,
   isAuthenticated: false,
-  isLoading: true,
+  isLoading: true, // For initial session check
 };
 
 const authSlice = createSlice({
