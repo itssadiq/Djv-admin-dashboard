@@ -123,8 +123,6 @@ const editJobSchema = z
       .refine((val) => val >= 0, "Salary cannot be negative")
       .refine((val) => val <= 10000000, "Please enter a realistic salary"),
 
-    is_remote: z.boolean().default(false),
-
     is_featured: z.boolean().default(false),
 
     status: z

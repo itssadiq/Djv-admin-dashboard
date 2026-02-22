@@ -3,22 +3,8 @@
 import { z } from "zod";
 
 // Constants matching database constraints exactly
-const JOB_TYPES = [
-  "Full Time",
-  "Part Time",
-  "Internship",
-  "Workstudent",
-  "Contract",
-  "Freelance",
-];
-const EXPERIENCE_LEVELS = [
-  "Entry Level",
-  "Junior",
-  "Mid Level",
-  "Senior",
-  "Lead",
-  "Executive",
-];
+const JOB_TYPES = ["Full Time", "Part Time", "Internship", "Workstudent"];
+const EXPERIENCE_LEVELS = ["Entry Level", "Junior", "Mid Level", "Senior"];
 const JOB_STATUSES = ["active", "closed"];
 const MAX_FILE_SIZE = 2 * 1024 * 1024;
 const ACCEPTED_IMAGE_TYPES = [
@@ -130,8 +116,6 @@ const postJobSchema = z
       .refine((val) => !isNaN(val), "Please enter a valid number")
       .refine((val) => val >= 0, "Salary cannot be negative")
       .refine((val) => val <= 10000000, "Please enter a realistic salary"),
-
-    is_remote: z.boolean().default(false),
 
     is_featured: z.boolean().default(false),
   })
