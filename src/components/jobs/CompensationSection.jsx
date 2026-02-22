@@ -22,7 +22,7 @@ const CompensationSection = ({ register, errors }) => {
             <label className={labelClass}>Minimum Salary</label>
             <div className="relative">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                $
+                €
               </span>
               <input
                 type="number"
@@ -46,7 +46,7 @@ const CompensationSection = ({ register, errors }) => {
             <label className={labelClass}>Maximum Salary</label>
             <div className="relative">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                $
+                €
               </span>
               <input
                 type="number"
@@ -68,23 +68,6 @@ const CompensationSection = ({ register, errors }) => {
 
         {/* Toggle Options */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Remote */}
-          <label className="flex items-center gap-4 p-4 rounded-xl border border-slate-200 hover:border-brand-green cursor-pointer">
-            <input
-              type="checkbox"
-              {...register("is_remote")}
-              className={checkboxClass}
-            />
-            <div>
-              <span className="block text-sm font-semibold text-slate-700">
-                Remote Position
-              </span>
-              <span className="text-xs text-slate-400">
-                Can be performed from anywhere
-              </span>
-            </div>
-          </label>
-
           {/* Featured */}
           <label className="flex items-center gap-4 p-4 rounded-xl border border-slate-200 hover:border-brand-green cursor-pointer">
             <input
