@@ -17,20 +17,38 @@ const ApplicationDetailModal = ({
   isDeleting,
 }) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [statusError, setStatusError] = useState(null);
 
   if (!isOpen || !application) return null;
 
   const { profiles, jobs, status, created_at, updated_at } = application;
 
-  const fullName =
-    `${profiles?.first_name || ""} ${profiles?.last_name || ""}`.trim() ||
-    "Unknown";
-  const initials = fullName
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
+  // Better name handling
+  const getDisplayName = () => {
+    if (profiles?.first_name || profiles?.last_name) {
+      return `${profiles.first_name || ""} ${profiles.last_name || ""}`.trim();
+    }
+    if (profiles?.email) {
+      return profiles.email.split("@")[0];
+    }
+    return "Unknown Applicant";
+  };
+
+  const fullName = getDisplayName();
+
+  const getInitials = () => {
+    if (profiles?.first_name || profiles?.last_name) {
+      const first = profiles.first_name?.charAt(0) || "";
+      const last = profiles.last_name?.charAt(0) || "";
+      return (first + last).toUpperCase() || "?";
+    }
+    if (profiles?.email) {
+      return profiles.email.charAt(0).toUpperCase();
+    }
+    return "?";
+  };
+
+  const initials = getInitials();
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
@@ -60,7 +78,15 @@ const ApplicationDetailModal = ({
   ].filter((doc) => doc.url);
 
   const handleStatusChange = async (newStatus) => {
-    await onUpdateStatus(application.job_id, application.user_id, newStatus);
+    setStatusError(null);
+    const success = await onUpdateStatus(
+      application.job_id,
+      application.user_id,
+      newStatus,
+    );
+    if (!success) {
+      setStatusError("Failed to update status. Please try again.");
+    }
   };
 
   const handleDelete = async () => {
@@ -84,6 +110,7 @@ const ApplicationDetailModal = ({
         zIndex: 99999,
         padding: "16px",
       }}
+      onClick={onClose}
     >
       <div
         className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col"
@@ -92,7 +119,7 @@ const ApplicationDetailModal = ({
         {/* Header */}
         <div className="p-6 border-b border-slate-100 flex items-start justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-full bg-slate-100 overflow-hidden border border-slate-200">
+            <div className="w-14 h-14 rounded-full bg-slate-100 overflow-hidden border border-slate-200 flex items-center justify-center">
               {profiles?.avatar_url ? (
                 <img
                   src={profiles.avatar_url}
@@ -100,14 +127,16 @@ const ApplicationDetailModal = ({
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-brand-green text-white font-semibold">
+                <span className="text-lg font-bold text-brand-green">
                   {initials}
-                </div>
+                </span>
               )}
             </div>
             <div>
               <h2 className="text-xl font-bold text-slate-800">{fullName}</h2>
-              <p className="text-sm text-slate-500">{profiles?.email}</p>
+              <p className="text-sm text-slate-500">
+                {profiles?.email || "No email"}
+              </p>
               {profiles?.phone && (
                 <p className="text-sm text-slate-500">{profiles.phone}</p>
               )}
@@ -155,9 +184,12 @@ const ApplicationDetailModal = ({
                 )}
               </div>
               <div>
-                <p className="font-semibold text-slate-800">{jobs?.title}</p>
+                <p className="font-semibold text-slate-800">
+                  {jobs?.title || "Unknown Position"}
+                </p>
                 <p className="text-sm text-slate-500">
-                  {jobs?.company_name} • {jobs?.location}
+                  {jobs?.company_name || "Unknown Company"} •{" "}
+                  {jobs?.location || "Unknown Location"}
                 </p>
               </div>
             </div>
@@ -168,6 +200,9 @@ const ApplicationDetailModal = ({
             <p className="text-xs font-bold text-slate-400 uppercase mb-3">
               Application Status
             </p>
+            {statusError && (
+              <p className="text-sm text-red-600 mb-2">{statusError}</p>
+            )}
             <div className="flex flex-wrap gap-2">
               {APPLICATION_STATUSES.map((statusOption) => {
                 const config = STATUS_CONFIG[statusOption];
@@ -178,13 +213,13 @@ const ApplicationDetailModal = ({
                     key={statusOption}
                     onClick={() => handleStatusChange(statusOption)}
                     disabled={isUpdating}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition cursor-pointer disabled:opacity-50 ${
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
                       isActive
                         ? `${config.bgColor} ${config.textColor} ring-2 ring-offset-1 ${config.borderColor}`
                         : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                     }`}
                   >
-                    {config.label}
+                    {isUpdating ? "..." : config.label}
                   </button>
                 );
               })}
@@ -206,6 +241,16 @@ const ApplicationDetailModal = ({
               <p className="text-sm text-slate-700">{formatDate(updated_at)}</p>
             </div>
           </div>
+
+          {/* Address */}
+          {profiles?.address && (
+            <div>
+              <p className="text-xs font-bold text-slate-400 uppercase mb-2">
+                Address
+              </p>
+              <p className="text-sm text-slate-700">{profiles.address}</p>
+            </div>
+          )}
 
           {/* Portfolio */}
           {profiles?.portfolio_link && (
@@ -272,6 +317,13 @@ const ApplicationDetailModal = ({
                   </a>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* No Documents Message */}
+          {documents.length === 0 && (
+            <div className="bg-slate-50 rounded-xl p-4 text-center">
+              <p className="text-sm text-slate-500">No documents uploaded</p>
             </div>
           )}
         </div>
