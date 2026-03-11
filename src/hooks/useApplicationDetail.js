@@ -59,29 +59,6 @@ export const useApplicationDetail = () => {
     navigate("/dashboard/applications");
   }, [navigate]);
 
-  // Download single document
-  const downloadDocument = useCallback((url, filename) => {
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    link.target = "_blank";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }, []);
-
-  // Download all documents
-  const downloadAllDocuments = useCallback(
-    (documents) => {
-      documents.forEach((doc, index) => {
-        setTimeout(() => {
-          downloadDocument(doc.url, doc.filename);
-        }, index * 500); // Stagger downloads
-      });
-    },
-    [downloadDocument],
-  );
-
   return {
     application,
     isLoading,
@@ -92,7 +69,5 @@ export const useApplicationDetail = () => {
     handleUpdateStatus,
     handleDelete,
     goBack,
-    downloadDocument,
-    downloadAllDocuments,
   };
 };

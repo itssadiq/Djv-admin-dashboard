@@ -8,6 +8,7 @@ export const applicationsApi = createApi({
   baseQuery: fakeBaseQuery(),
   tagTypes: ["Applications"],
   endpoints: (builder) => ({
+    // Get all applications with profile and job details
     getApplications: builder.query({
       async queryFn() {
         try {
@@ -25,6 +26,7 @@ export const applicationsApi = createApi({
           const userIds = [...new Set(applications.map((app) => app.user_id))];
           const jobIds = [...new Set(applications.map((app) => app.job_id))];
 
+          // FETCH PROFILES
           const { data: profiles, error: profileError } = await supabase
             .from("profiles")
             .select("*")
@@ -32,37 +34,43 @@ export const applicationsApi = createApi({
 
           if (profileError) throw profileError;
 
+          // FETCH JOBS - Added 'status' and 'industry' to the select string below
           const { data: jobs, error: jobError } = await supabase
             .from("jobs")
             .select(
-              "id, title, company_name, company_logo, location, job_type, experience_level",
-            )
+              "id, title, company_name, company_logo, location, job_type, experience_level, status, industry",
+            ) // <-- FIXED HERE
             .in("id", jobIds);
 
           if (jobError) throw jobError;
 
+          // Create lookup maps
           const profileMap = (profiles || []).reduce((acc, profile) => {
             acc[profile.id] = profile;
             return acc;
           }, {});
 
-          const combinedData = applications.map((app) => {
-            return {
-              ...app,
-              profiles: profileMap[app.user_id] || null,
-              jobs: jobs?.find((j) => j.id === app.job_id) || null,
-            };
-          });
+          const jobMap = (jobs || []).reduce((acc, job) => {
+            acc[job.id] = job;
+            return acc;
+          }, {});
+
+          // Combine data
+          const combinedData = applications.map((app) => ({
+            ...app,
+            profiles: profileMap[app.user_id] || null,
+            jobs: jobMap[app.job_id] || null,
+          }));
 
           return { data: combinedData };
         } catch (error) {
-          console.error("Error:", error);
           return { error: { message: error.message } };
         }
       },
       providesTags: ["Applications"],
     }),
 
+    // Update application status
     updateApplicationStatus: builder.mutation({
       async queryFn({ jobId, userId, status }) {
         try {
@@ -86,6 +94,7 @@ export const applicationsApi = createApi({
       invalidatesTags: ["Applications"],
     }),
 
+    // Delete application
     deleteApplication: builder.mutation({
       async queryFn({ jobId, userId }) {
         try {
