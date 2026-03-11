@@ -1,32 +1,20 @@
-// src/services/jobsApi.js
-
 import { createApi, fakeBaseQuery } from "@reduxjs/toolkit/query/react";
-import { supabase } from "../lib/config";
+import { supabase } from "../lib/config"; // Ensure this path is correct for your project
 
 // Helper function to extract file path from URL
 const getFilePathFromUrl = (url) => {
   if (!url) return null;
-
   try {
-    // Handle different URL formats
-    // Example: https://xxx.supabase.co/storage/v1/object/public/logos/company-logos/123-abc.png
-
     const urlObj = new URL(url);
     const pathname = urlObj.pathname;
-
-    // Try to match the path after 'logos/'
     const patterns = [
       /\/storage\/v1\/object\/public\/logos\/(.+)/,
       /\/logos\/(.+)/,
     ];
-
     for (const pattern of patterns) {
       const match = pathname.match(pattern);
-      if (match && match[1]) {
-        return match[1];
-      }
+      if (match && match[1]) return match[1];
     }
-
     return null;
   } catch (error) {
     console.error("Error parsing logo URL:", error);
@@ -37,25 +25,17 @@ const getFilePathFromUrl = (url) => {
 // Helper function to delete logo from storage
 const deleteLogoFromStorage = async (logoUrl) => {
   if (!logoUrl) return false;
-
   const filePath = getFilePathFromUrl(logoUrl);
-
-  if (!filePath) {
-    console.error("Could not extract file path from URL:", logoUrl);
-    return false;
-  }
+  if (!filePath) return false;
 
   try {
     const { error } = await supabase.storage.from("logos").remove([filePath]);
-
     if (error) {
       console.error("Supabase storage delete error:", error);
       return false;
     }
-
     return true;
   } catch (error) {
-    console.error("Failed to delete logo:", error);
     return false;
   }
 };
@@ -65,18 +45,13 @@ export const jobsApi = createApi({
   baseQuery: fakeBaseQuery(),
   tagTypes: ["Jobs"],
   endpoints: (builder) => ({
+    
     // Create new job
     createJob: builder.mutation({
       async queryFn(jobData) {
         try {
-          const { data, error } = await supabase
-            .from("jobs")
-            .insert(jobData)
-            .select()
-            .single();
-
+          const { data, error } = await supabase.from("jobs").insert(jobData).select().single();
           if (error) throw error;
-
           return { data };
         } catch (error) {
           return { error: { message: error.message } };
@@ -92,17 +67,9 @@ export const jobsApi = createApi({
           const fileExt = file.name.split(".").pop();
           const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
           const filePath = `company-logos/${fileName}`;
-
-          const { error: uploadError } = await supabase.storage
-            .from("logos")
-            .upload(filePath, file);
-
+          const { error: uploadError } = await supabase.storage.from("logos").upload(filePath, file);
           if (uploadError) throw uploadError;
-
-          const { data: urlData } = supabase.storage
-            .from("logos")
-            .getPublicUrl(filePath);
-
+          const { data: urlData } = supabase.storage.from("logos").getPublicUrl(filePath);
           return { data: urlData.publicUrl };
         } catch (error) {
           return { error: { message: "Failed to upload logo" } };
@@ -122,17 +89,12 @@ export const jobsApi = createApi({
       },
     }),
 
-    // Get all jobs
-    getJobs: builder.query({
+    // 🟢 RENAMED ENDPOINT TO MATCH YOUR IMPORT
+    getAllJobs: builder.query({
       async queryFn() {
         try {
-          const { data, error } = await supabase
-            .from("jobs")
-            .select("*")
-            .order("created_at", { ascending: false });
-
+          const { data, error } = await supabase.from("jobs").select("*").order("created_at", { ascending: false });
           if (error) throw error;
-
           return { data };
         } catch (error) {
           return { error: { message: error.message } };
@@ -145,14 +107,8 @@ export const jobsApi = createApi({
     getJob: builder.query({
       async queryFn(id) {
         try {
-          const { data, error } = await supabase
-            .from("jobs")
-            .select("*")
-            .eq("id", id)
-            .single();
-
+          const { data, error } = await supabase.from("jobs").select("*").eq("id", id).single();
           if (error) throw error;
-
           return { data };
         } catch (error) {
           return { error: { message: error.message } };
@@ -165,58 +121,24 @@ export const jobsApi = createApi({
     updateJob: builder.mutation({
       async queryFn({ id, ...jobData }) {
         try {
-          const { data, error } = await supabase
-            .from("jobs")
-            .update(jobData)
-            .eq("id", id)
-            .select()
-            .single();
-
+          const { data, error } = await supabase.from("jobs").update(jobData).eq("id", id).select().single();
           if (error) throw error;
-
           return { data };
         } catch (error) {
           return { error: { message: error.message } };
         }
       },
-      invalidatesTags: (result, error, { id }) => [
-        { type: "Jobs", id },
-        "Jobs",
-      ],
+      invalidatesTags: (result, error, { id }) => [{ type: "Jobs", id }, "Jobs"],
     }),
 
     // Delete job (with logo cleanup)
     deleteJob: builder.mutation({
       async queryFn(id) {
         try {
-          // First, get the job to find the logo URL
-          const { data: job, error: fetchError } = await supabase
-            .from("jobs")
-            .select("company_logo")
-            .eq("id", id)
-            .single();
-
-          if (fetchError) {
-            console.error("Error fetching job:", fetchError);
-            throw fetchError;
-          }
-
-          // Delete logo from storage if exists
-          if (job?.company_logo) {
-            await deleteLogoFromStorage(job.company_logo);
-          }
-
-          // Delete the job from database
-          const { error: deleteError } = await supabase
-            .from("jobs")
-            .delete()
-            .eq("id", id);
-
-          if (deleteError) {
-            console.error("Error deleting job:", deleteError);
-            throw deleteError;
-          }
-
+          const { data: job } = await supabase.from("jobs").select("company_logo").eq("id", id).single();
+          if (job?.company_logo) await deleteLogoFromStorage(job.company_logo);
+          const { error: deleteError } = await supabase.from("jobs").delete().eq("id", id);
+          if (deleteError) throw deleteError;
           return { data: { success: true } };
         } catch (error) {
           return { error: { message: error.message } };
@@ -231,8 +153,11 @@ export const {
   useCreateJobMutation,
   useUploadLogoMutation,
   useDeleteLogoMutation,
-  useGetJobsQuery,
+  useGetAllJobsQuery, // 🟢 Matches ManageJobs
   useGetJobQuery,
   useUpdateJobMutation,
   useDeleteJobMutation,
 } = jobsApi;
+
+// 🟢 ALIAS for compatibility
+export const useGetJobsQuery = useGetAllJobsQuery; 

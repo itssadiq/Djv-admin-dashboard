@@ -1,158 +1,86 @@
-// src/components/manageJobs/JobCard.jsx
-
-import { useNavigate } from "react-router-dom";
-
-const JobCard = ({ job, onDelete }) => {
-  const navigate = useNavigate();
+import React from "react";
+import { Link } from "react-router-dom";
+import { Edit, Trash2, Eye, MapPin, Briefcase } from "lucide-react";
+const JobCard = ({ job, isSelected, onSelectRow, onDelete }) => {
   const isActive = job.status === "active";
 
-  const handleEdit = () => {
-    navigate(`/dashboard/edit-job/${job.id}`);
-  };
+  
 
   return (
     <div
-      className={`${
-        isActive ? "bg-white" : "bg-slate-50"
-      } border border-slate-200 rounded-xl p-5 transition-all hover:border-slate-300 hover:shadow-md hover:-translate-y-px flex flex-col md:flex-row items-center justify-between gap-6 group`}
+      className={`relative border rounded-xl p-5 transition-all duration-200 ${
+        isSelected
+          ? "bg-green-50 border-green-200 ring-1 ring-green-200"
+          : "bg-white border-slate-200 hover:shadow-md"
+      }`}
     >
-      {/* Job Info */}
-      <div
-        className={`flex items-center gap-5 w-full md:w-1/3 ${
-          !isActive ? "opacity-70" : ""
-        }`}
-      >
-        <div
-          className={`w-12 h-12 rounded-lg ${
-            isActive ? "bg-slate-100" : "bg-slate-200"
-          } flex items-center justify-center overflow-hidden border ${
-            isActive ? "border-slate-200" : "border-slate-300"
+      {/* 1. Header: Checkbox & Status */}
+      <div className="flex justify-between items-start mb-4">
+        <input
+          type="checkbox"
+          className="w-5 h-5 rounded border-slate-300 text-brand-green focus:ring-brand-green cursor-pointer"
+          checked={isSelected}
+          onChange={() => onSelectRow(job.id)}
+        />
+        <span
+          className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide border ${
+            isActive
+              ? "bg-green-100 text-green-700 border-green-200"
+              : "bg-slate-100 text-slate-500 border-slate-200"
           }`}
         >
-          {job.company_logo ? (
-            <img
-              src={job.company_logo}
-              alt={job.company_name}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <span
-              className={`font-bold text-lg ${
-                isActive ? "text-slate-500" : "text-slate-400"
-              }`}
-            >
-              {job.company_name.charAt(0).toUpperCase()}
-            </span>
-          )}
-        </div>
+          {job.status}
+        </span>
+      </div>
 
+      {/* 2. Job Info */}
+      <div className="flex items-center gap-4 mb-4">
+        <div className="w-12 h-12 rounded-lg bg-white border border-slate-100 flex items-center justify-center p-1 shrink-0">
+          <img
+            src={job.company_logo}
+            alt={job.company_name}
+            className="w-full h-full object-contain"
+          />
+        </div>
         <div>
-          <h4
-            className={`text-base font-bold ${
-              isActive
-                ? "text-slate-800 group-hover:text-brand-green"
-                : "text-slate-600"
-            } transition`}
-          >
+          <h4 className="text-base font-bold text-slate-900 line-clamp-1">
             {job.title}
           </h4>
-          <p
-            className={`text-xs font-medium ${
-              isActive ? "text-slate-500" : "text-slate-400"
-            } uppercase tracking-wide mt-1`}
-          >
-            {job.company_name} • {job.location}
+          <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+            {job.company_name}
           </p>
         </div>
       </div>
 
-      {/* Job Details */}
-      <div className="flex items-center justify-between w-full md:w-2/3">
-        <div className={!isActive ? "opacity-70" : ""}>
-          <span className="text-xs font-bold text-slate-400 uppercase block mb-1">
-            Type
-          </span>
-          <span
-            className={`text-sm font-medium ${
-              isActive
-                ? "text-slate-700 bg-slate-100 border-slate-200"
-                : "text-slate-500 bg-slate-200 border-slate-300"
-            } px-2 py-1 rounded border`}
-          >
-            {job.job_type}
-          </span>
+      {/* 3. Details */}
+      <div className="space-y-2 mb-5">
+        <div className="flex items-center gap-2 text-xs text-slate-600">
+          <Briefcase size={14} className="text-slate-400" />
+          {job.job_type.replace("_", " ")}
         </div>
-
-        <div>
-          <span className="text-xs font-bold text-slate-400 uppercase block mb-1">
-            Status
-          </span>
-          <span
-            className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold leading-none ${
-              isActive
-                ? "bg-green-100 text-green-800 border-green-200"
-                : "bg-slate-100 text-slate-600 border-slate-200"
-            } border`}
-          >
-            {job.status.charAt(0).toUpperCase() + job.status.slice(1)}
-          </span>
+        <div className="flex items-center gap-2 text-xs text-slate-600">
+          <MapPin size={14} className="text-slate-400" />
+          {job.location}
         </div>
-
-        <div className={`text-center ${!isActive ? "opacity-70" : ""}`}>
-          <span className="text-xs font-bold text-slate-400 uppercase block mb-1">
-            Applicants
-          </span>
-          <span
-            className={`text-lg font-bold ${
-              isActive ? "text-slate-800" : "text-slate-600"
-            }`}
-          >
-            {job.applicants_count || 0}
-          </span>
+        <div className="text-xs text-slate-400 pl-6">
+          Posted: {new Date(job.created_at).toLocaleDateString()}
         </div>
+      </div>
 
-        {/* Actions */}
-        <div className="flex gap-2">
-          <button
-            onClick={handleEdit}
-            className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded transition cursor-pointer"
-            title="Edit job"
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-              />
-            </svg>
-          </button>
-
-          <button
-            onClick={() => onDelete(job.id, job.title)}
-            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded transition cursor-pointer"
-            title="Delete job"
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-              />
-            </svg>
-          </button>
-        </div>
+      {/* 4. Actions */}
+      <div className="flex gap-2 border-t border-slate-100 pt-4">
+        <Link
+          to={`/admin/jobs/edit/${job.id}`}
+          className="flex-1 py-2 flex items-center justify-center gap-2 text-xs font-bold text-slate-600 bg-slate-50 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-colors"
+        >
+          <Edit size={14} /> Edit
+        </Link>
+        <button
+          onClick={() => onDelete(job.id, job.title)}
+          className="flex-1 py-2 flex items-center justify-center gap-2 text-xs font-bold text-slate-600 bg-slate-50 rounded-lg hover:bg-red-50 hover:text-red-500 transition-colors"
+        >
+          <Trash2 size={14} /> Delete
+        </button>
       </div>
     </div>
   );

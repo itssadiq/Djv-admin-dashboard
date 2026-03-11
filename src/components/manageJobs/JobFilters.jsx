@@ -1,28 +1,32 @@
 // src/components/manageJobs/JobFilters.jsx
 
+import { Search, X } from "lucide-react";
+
 const selectClass =
-  "w-full bg-white border border-slate-300 rounded-lg px-4 h-12 text-sm text-slate-800 shadow-sm focus:border-brand-green focus:ring-4 focus:ring-green-500/15 focus:outline-none appearance-none bg-select-arrow bg-[length:1.5em_1.5em] bg-no-repeat bg-[right_0.75rem_center] cursor-pointer";
+  "w-full bg-white border border-slate-300 rounded-lg px-4 h-12 text-sm text-slate-800 shadow-sm focus:border-brand-green focus:ring-4 focus:ring-green-500/15 focus:outline-none appearance-none cursor-pointer";
 
 const JobFilters = ({
   searchQuery,
   setSearchQuery,
-  companyFilter,
-  setCompanyFilter,
-  industryFilter,
-  setIndustryFilter,
-  statusFilter,
-  setStatusFilter,
-  typeFilter,
-  setTypeFilter,
+  filters, // 🟢 Consolidated Object
+  setFilters, // 🟢 Consolidated Setter
   filterOptions,
   clearFilters,
 }) => {
+  // Helper to update a specific filter
+  const handleFilterChange = (key, value) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+  };
+
   const hasActiveFilters =
     searchQuery ||
-    companyFilter ||
-    industryFilter ||
-    statusFilter ||
-    typeFilter;
+    filters.company !== "all" ||
+    filters.industry !== "all" ||
+    filters.status !== "all" ||
+    filters.type !== "all";
+
+  // Safe check to prevent crash if options aren't loaded yet
+  if (!filterOptions?.companies) return null;
 
   return (
     <div className="space-y-4">
@@ -36,28 +40,16 @@ const JobFilters = ({
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-white border border-slate-300 rounded-lg pl-10 pr-4 h-12 text-sm text-slate-800 shadow-sm focus:border-brand-green focus:ring-4 focus:ring-green-500/15 focus:outline-none"
           />
-          <svg
-            className="absolute left-3 top-3.5 w-5 h-5 text-slate-400"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
+          <Search className="absolute left-3 top-3.5 w-5 h-5 text-slate-400" />
         </div>
 
         {/* Company Filter */}
         <select
-          value={companyFilter}
-          onChange={(e) => setCompanyFilter(e.target.value)}
+          value={filters.company}
+          onChange={(e) => handleFilterChange("company", e.target.value)}
           className={selectClass}
         >
-          <option value="">All Companies</option>
+          <option value="all">All Companies</option>
           {filterOptions.companies.map((company) => (
             <option key={company} value={company}>
               {company}
@@ -67,11 +59,11 @@ const JobFilters = ({
 
         {/* Industry Filter */}
         <select
-          value={industryFilter}
-          onChange={(e) => setIndustryFilter(e.target.value)}
+          value={filters.industry}
+          onChange={(e) => handleFilterChange("industry", e.target.value)}
           className={selectClass}
         >
-          <option value="">All Industries</option>
+          <option value="all">All Industries</option>
           {filterOptions.industries.map((industry) => (
             <option key={industry} value={industry}>
               {industry}
@@ -81,11 +73,11 @@ const JobFilters = ({
 
         {/* Status Filter */}
         <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
+          value={filters.status}
+          onChange={(e) => handleFilterChange("status", e.target.value)}
           className={selectClass}
         >
-          <option value="">All Statuses</option>
+          <option value="all">All Statuses</option>
           {filterOptions.statuses.map((status) => (
             <option key={status} value={status}>
               {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -95,11 +87,11 @@ const JobFilters = ({
 
         {/* Type Filter */}
         <select
-          value={typeFilter}
-          onChange={(e) => setTypeFilter(e.target.value)}
+          value={filters.type}
+          onChange={(e) => handleFilterChange("type", e.target.value)}
           className={selectClass}
         >
-          <option value="">All Types</option>
+          <option value="all">All Types</option>
           {filterOptions.types.map((type) => (
             <option key={type} value={type}>
               {type}
@@ -113,21 +105,9 @@ const JobFilters = ({
         <div className="flex justify-end">
           <button
             onClick={clearFilters}
-            className="text-sm text-slate-500 hover:text-slate-700 flex items-center gap-1"
+            className="text-sm text-slate-500 hover:text-red-500 flex items-center gap-1 transition-colors"
           >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
+            <X size={16} />
             Clear filters
           </button>
         </div>

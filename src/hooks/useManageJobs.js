@@ -1,180 +1,157 @@
-// src/hooks/useManageJobs.js
-
-import { useState, useMemo, useCallback } from "react";
-import { useGetJobsQuery, useDeleteJobMutation } from "../services/jobsApi";
-
-const JOBS_PER_PAGE = 10;
+import { useState, useEffect, useMemo } from "react";
+import { useGetAllJobsQuery } from "../services/jobsApi"; // Assuming RTK Query
+import { supabase } from "../lib/config";
+import toast from "react-hot-toast";
 
 export const useManageJobs = () => {
-  const { data: jobs = [], isLoading, isError, error } = useGetJobsQuery();
-  const [deleteJob, { isLoading: isDeleting }] = useDeleteJobMutation();
+  // --- Data Fetching ---
+  const { data: allJobs = [], isLoading, isError, error, refetch } = useGetAllJobsQuery();
 
-  // Filter states
+  // --- Local State ---
   const [searchQuery, setSearchQuery] = useState("");
-  const [companyFilter, setCompanyFilter] = useState("");
-  const [industryFilter, setIndustryFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [typeFilter, setTypeFilter] = useState("");
-
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-
-  // Delete confirmation state
-  const [deleteModal, setDeleteModal] = useState({
-    isOpen: false,
-    jobId: null,
-    jobTitle: "",
+  const [selectedIds, setSelectedIds] = useState([]); // 🟢 Store selected IDs
+  const [isDeleting, setIsDeleting] = useState(false);
+  
+  // --- Filters State ---
+  const [filters, setFilters] = useState({
+    company: "all",
+    industry: "all",
+    status: "all",
+    type: "all"
   });
 
-  // Get unique values for filter dropdowns
-  const filterOptions = useMemo(() => {
-    const companies = [...new Set(jobs.map((job) => job.company_name))].sort();
-    const industries = [...new Set(jobs.map((job) => job.industry))].sort();
-    const statuses = [...new Set(jobs.map((job) => job.status))].sort();
-    const types = [...new Set(jobs.map((job) => job.job_type))].sort();
+  // --- Pagination State ---
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
-    return { companies, industries, statuses, types };
-  }, [jobs]);
-
-  // Filter jobs based on all criteria
+  // --- Filtering Logic (Memoized for Speed) ---
   const filteredJobs = useMemo(() => {
-    return jobs.filter((job) => {
-      const matchesSearch =
-        searchQuery === "" ||
-        job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        job.company_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        job.location.toLowerCase().includes(searchQuery.toLowerCase());
+    return allJobs.filter((job) => {
+      const matchesSearch = job.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                            job.company_name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesCompany = filters.company === "all" || job.company_name === filters.company;
+      const matchesIndustry = filters.industry === "all" || job.industry === filters.industry;
+      const matchesStatus = filters.status === "all" || job.status === filters.status;
+      const matchesType = filters.type === "all" || job.job_type === filters.type;
 
-      const matchesCompany =
-        companyFilter === "" || job.company_name === companyFilter;
-
-      const matchesIndustry =
-        industryFilter === "" || job.industry === industryFilter;
-
-      const matchesStatus = statusFilter === "" || job.status === statusFilter;
-
-      const matchesType = typeFilter === "" || job.job_type === typeFilter;
-
-      return (
-        matchesSearch &&
-        matchesCompany &&
-        matchesIndustry &&
-        matchesStatus &&
-        matchesType
-      );
+      return matchesSearch && matchesCompany && matchesIndustry && matchesStatus && matchesType;
     });
-  }, [
-    jobs,
-    searchQuery,
-    companyFilter,
-    industryFilter,
-    statusFilter,
-    typeFilter,
-  ]);
+  }, [allJobs, searchQuery, filters]);
 
-  // Pagination calculations
-  const totalPages = Math.ceil(filteredJobs.length / JOBS_PER_PAGE);
-
-  const paginatedJobs = useMemo(() => {
-    const startIndex = (currentPage - 1) * JOBS_PER_PAGE;
-    const endIndex = startIndex + JOBS_PER_PAGE;
-    return filteredJobs.slice(startIndex, endIndex);
-  }, [filteredJobs, currentPage]);
-
-  // Reset to page 1 when filters change
-  const handleFilterChange = useCallback(
-    (setter) => (value) => {
-      setter(value);
-      setCurrentPage(1);
-    },
-    [],
+  // --- Pagination Logic ---
+  const totalPages = Math.ceil(filteredJobs.length / itemsPerPage);
+  const paginatedJobs = filteredJobs.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
   );
 
-  // Clear all filters
-  const clearFilters = useCallback(() => {
-    setSearchQuery("");
-    setCompanyFilter("");
-    setIndustryFilter("");
-    setStatusFilter("");
-    setTypeFilter("");
-    setCurrentPage(1);
-  }, []);
-
-  // Page change handler
-  const handlePageChange = useCallback((page) => {
-    setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, []);
-
-  // Open delete confirmation modal
-  const openDeleteModal = useCallback((jobId, jobTitle) => {
-    setDeleteModal({ isOpen: true, jobId, jobTitle });
-  }, []);
-
-  // Close delete confirmation modal
-  const closeDeleteModal = useCallback(() => {
-    setDeleteModal({ isOpen: false, jobId: null, jobTitle: "" });
-  }, []);
-
-  // Confirm delete
-  const confirmDelete = useCallback(async () => {
-    if (deleteModal.jobId) {
-      try {
-        await deleteJob(deleteModal.jobId).unwrap();
-        closeDeleteModal();
-
-        // Adjust current page if needed
-        const newTotalPages = Math.ceil(
-          (filteredJobs.length - 1) / JOBS_PER_PAGE,
-        );
-        if (currentPage > newTotalPages && newTotalPages > 0) {
-          setCurrentPage(newTotalPages);
-        }
-      } catch (err) {
-        console.error("Failed to delete job:", err);
-      }
+  // --- Bulk Selection Logic 🟢 ---
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      // Select all IDs visible on the CURRENT PAGE
+      const idsOnPage = paginatedJobs.map((job) => job.id);
+      // Combine with existing to avoid duplicates
+      const uniqueIds = [...new Set([...selectedIds, ...idsOnPage])];
+      setSelectedIds(uniqueIds);
+    } else {
+      // Deselect all on current page
+      const idsOnPage = paginatedJobs.map((job) => job.id);
+      setSelectedIds(selectedIds.filter(id => !idsOnPage.includes(id)));
     }
-  }, [
-    deleteModal.jobId,
-    deleteJob,
-    closeDeleteModal,
-    filteredJobs.length,
-    currentPage,
-  ]);
+  };
+
+  const handleSelectRow = (id) => {
+    if (selectedIds.includes(id)) {
+      setSelectedIds(selectedIds.filter((item) => item !== id));
+    } else {
+      setSelectedIds([...selectedIds, id]);
+    }
+  };
+
+  // --- Modal State ---
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    type: 'single', // 'single' or 'bulk'
+    id: null,
+    title: ''
+  });
+
+  const openDeleteModal = (id, title) => {
+    setDeleteModal({ isOpen: true, type: 'single', id, title });
+  };
+
+  const openBulkDeleteModal = () => {
+    setDeleteModal({ isOpen: true, type: 'bulk', id: null, title: `${selectedIds.length} jobs` });
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteModal((prev) => ({ ...prev, isOpen: false }));
+  };
+
+  // --- Delete Logic (Optimized) ---
+  const confirmDelete = async () => {
+    setIsDeleting(true);
+    try {
+      if (deleteModal.type === 'single') {
+        // Single Delete
+        const { error } = await supabase.from('jobs').delete().eq('id', deleteModal.id);
+        if (error) throw error;
+        toast.success("Job deleted successfully");
+      } else {
+        // Bulk Delete 🟢 (One request for multiple items)
+        const { error } = await supabase.from('jobs').delete().in('id', selectedIds);
+        if (error) throw error;
+        toast.success(`${selectedIds.length} jobs deleted`);
+        setSelectedIds([]); // Clear selection
+      }
+      
+      refetch(); // Refresh list
+      closeDeleteModal();
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to delete. Please try again.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const filterOptions = useMemo(() => {
+    return {
+      companies: [...new Set(allJobs.map((j) => j.company_name).filter(Boolean))],
+      industries: [...new Set(allJobs.map((j) => j.industry).filter(Boolean))],
+      // 🟢 ADD THESE TWO:
+      statuses: [...new Set(allJobs.map((j) => j.status).filter(Boolean))],
+      types: [...new Set(allJobs.map((j) => j.job_type).filter(Boolean))],
+    };
+  }, [allJobs]);
 
   return {
-    // Data
     jobs: paginatedJobs,
     totalJobs: filteredJobs.length,
     isLoading,
     isError,
     error,
     isDeleting,
-
-    // Pagination
     currentPage,
     totalPages,
-    handlePageChange,
-
-    // Filter states
+    handlePageChange: setCurrentPage,
     searchQuery,
-    setSearchQuery: handleFilterChange(setSearchQuery),
-    companyFilter,
-    setCompanyFilter: handleFilterChange(setCompanyFilter),
-    industryFilter,
-    setIndustryFilter: handleFilterChange(setIndustryFilter),
-    statusFilter,
-    setStatusFilter: handleFilterChange(setStatusFilter),
-    typeFilter,
-    setTypeFilter: handleFilterChange(setTypeFilter),
-
-    // Filter options
+    setSearchQuery,
+    filters,
+    setFilters,
     filterOptions,
-    clearFilters,
-
-    // Delete modal
+    clearFilters: () => {
+        setFilters({ company: "all", industry: "all", status: "all", type: "all" });
+        setSearchQuery("");
+    },
+    // New Selection Props
+    selectedIds,
+    handleSelectAll,
+    handleSelectRow,
+    // Modal Props
     deleteModal,
     openDeleteModal,
+    openBulkDeleteModal,
     closeDeleteModal,
     confirmDelete,
   };
