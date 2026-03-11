@@ -2,7 +2,7 @@
 
 import ApplicationCard from "./ApplicationCard";
 
-const ApplicationList = ({ applications, isLoading, onSelect }) => {
+const ApplicationList = ({ applications, isLoading }) => {
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -56,7 +56,6 @@ const ApplicationList = ({ applications, isLoading, onSelect }) => {
         <ApplicationCard
           key={`${application.job_id}-${application.user_id}`}
           application={application}
-          onClick={() => onSelect(application)}
         />
       ))}
     </div>

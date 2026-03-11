@@ -8,7 +8,6 @@ export const applicationsApi = createApi({
   baseQuery: fakeBaseQuery(),
   tagTypes: ["Applications"],
   endpoints: (builder) => ({
-    // Get all applications with profile and job details
     getApplications: builder.query({
       async queryFn() {
         try {
@@ -47,31 +46,26 @@ export const applicationsApi = createApi({
             return acc;
           }, {});
 
-          const jobMap = (jobs || []).reduce((acc, job) => {
-            acc[job.id] = job;
-            return acc;
-          }, {});
-
-          const combinedData = applications.map((app) => ({
-            ...app,
-            profiles: profileMap[app.user_id] || null,
-            jobs: jobMap[app.job_id] || null,
-          }));
+          const combinedData = applications.map((app) => {
+            return {
+              ...app,
+              profiles: profileMap[app.user_id] || null,
+              jobs: jobs?.find((j) => j.id === app.job_id) || null,
+            };
+          });
 
           return { data: combinedData };
         } catch (error) {
+          console.error("Error:", error);
           return { error: { message: error.message } };
         }
       },
       providesTags: ["Applications"],
     }),
 
-    // Update application status
     updateApplicationStatus: builder.mutation({
       async queryFn({ jobId, userId, status }) {
         try {
-          console.log("Updating status:", { jobId, userId, status });
-
           const { data, error } = await supabase
             .from("applications")
             .update({
@@ -82,20 +76,16 @@ export const applicationsApi = createApi({
             .eq("user_id", userId)
             .select();
 
-          console.log("Update result:", { data, error });
-
           if (error) throw error;
 
           return { data: data?.[0] || null };
         } catch (error) {
-          console.error("Update error:", error);
           return { error: { message: error.message } };
         }
       },
       invalidatesTags: ["Applications"],
     }),
 
-    // Delete application
     deleteApplication: builder.mutation({
       async queryFn({ jobId, userId }) {
         try {

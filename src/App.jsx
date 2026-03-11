@@ -1,3 +1,5 @@
+// src/App.jsx
+
 import { Routes, Route, Navigate } from "react-router-dom";
 import { Provider } from "react-redux";
 import { store } from "./store/store";
@@ -5,12 +7,14 @@ import { store } from "./store/store";
 // Components
 import AuthInitializer from "./components/AuthInitializer";
 import ProtectedRoute from "./components/ProtectedRoute";
+
 // Pages
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import PostJob from "./pages/PostJob";
 import ManageJobs from "./pages/ManageJobs";
 import Applications from "./pages/Applications";
+import ApplicationDetail from "./pages/ApplicationDetail"; // Add this
 import Industries from "./pages/Industries";
 import AdminLayout from "./pages/AdminLayout";
 import EditJob from "./pages/EditJob";
@@ -34,6 +38,11 @@ function App() {
                 path="/dashboard/applications"
                 element={<Applications />}
               />
+              <Route
+                path="/dashboard/applications/:jobId/:userId"
+                element={<ApplicationDetail />}
+              />{" "}
+              {/* Add this */}
               <Route path="/dashboard/industries" element={<Industries />} />
             </Route>
           </Route>

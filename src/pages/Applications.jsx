@@ -4,7 +4,6 @@ import { useManageApplications } from "../hooks/useManageApplications";
 import {
   ApplicationFilters,
   ApplicationList,
-  ApplicationDetailModal,
   Pagination,
 } from "../components/applications";
 
@@ -15,8 +14,6 @@ const Applications = () => {
     isLoading,
     isError,
     error,
-    isUpdating,
-    isDeleting,
     searchQuery,
     setSearchQuery,
     jobFilter,
@@ -28,12 +25,6 @@ const Applications = () => {
     currentPage,
     totalPages,
     handlePageChange,
-    selectedApplication,
-    isDetailModalOpen,
-    openDetailModal,
-    closeDetailModal,
-    handleUpdateStatus,
-    handleDeleteApplication,
   } = useManageApplications();
 
   if (isError) {
@@ -96,11 +87,7 @@ const Applications = () => {
       )}
 
       {/* List */}
-      <ApplicationList
-        applications={applications}
-        isLoading={isLoading}
-        onSelect={openDetailModal}
-      />
+      <ApplicationList applications={applications} isLoading={isLoading} />
 
       {/* Pagination */}
       {!isLoading && totalApplications > 0 && (
@@ -110,17 +97,6 @@ const Applications = () => {
           onPageChange={handlePageChange}
         />
       )}
-
-      {/* Detail Modal */}
-      <ApplicationDetailModal
-        isOpen={isDetailModalOpen}
-        application={selectedApplication}
-        onClose={closeDetailModal}
-        onUpdateStatus={handleUpdateStatus}
-        onDelete={handleDeleteApplication}
-        isUpdating={isUpdating}
-        isDeleting={isDeleting}
-      />
     </section>
   );
 };
