@@ -26,6 +26,7 @@ export const applicationsApi = createApi({
           const userIds = [...new Set(applications.map((app) => app.user_id))];
           const jobIds = [...new Set(applications.map((app) => app.job_id))];
 
+          // FETCH PROFILES
           const { data: profiles, error: profileError } = await supabase
             .from("profiles")
             .select("*")
@@ -33,15 +34,17 @@ export const applicationsApi = createApi({
 
           if (profileError) throw profileError;
 
+          // FETCH JOBS - Added 'status' and 'industry' to the select string below
           const { data: jobs, error: jobError } = await supabase
             .from("jobs")
             .select(
-              "id, title, company_name, company_logo, location, job_type, experience_level",
-            )
+              "id, title, company_name, company_logo, location, job_type, experience_level, status, industry",
+            ) // <-- FIXED HERE
             .in("id", jobIds);
 
           if (jobError) throw jobError;
 
+          // Create lookup maps
           const profileMap = (profiles || []).reduce((acc, profile) => {
             acc[profile.id] = profile;
             return acc;
@@ -52,6 +55,7 @@ export const applicationsApi = createApi({
             return acc;
           }, {});
 
+          // Combine data
           const combinedData = applications.map((app) => ({
             ...app,
             profiles: profileMap[app.user_id] || null,
@@ -70,8 +74,6 @@ export const applicationsApi = createApi({
     updateApplicationStatus: builder.mutation({
       async queryFn({ jobId, userId, status }) {
         try {
-          console.log("Updating status:", { jobId, userId, status });
-
           const { data, error } = await supabase
             .from("applications")
             .update({
@@ -82,13 +84,10 @@ export const applicationsApi = createApi({
             .eq("user_id", userId)
             .select();
 
-          console.log("Update result:", { data, error });
-
           if (error) throw error;
 
           return { data: data?.[0] || null };
         } catch (error) {
-          console.error("Update error:", error);
           return { error: { message: error.message } };
         }
       },

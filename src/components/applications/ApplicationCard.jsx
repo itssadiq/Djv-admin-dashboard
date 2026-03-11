@@ -1,17 +1,15 @@
 // src/components/applications/ApplicationCard.jsx
 
+import { useNavigate } from "react-router-dom";
 import { STATUS_CONFIG } from "../../constants/applicationStatus";
 
-const ApplicationCard = ({ application, onClick }) => {
-  const { profiles, jobs, status, created_at } = application;
+const ApplicationCard = ({ application }) => {
+  const navigate = useNavigate();
+  const { profiles, jobs, status, created_at, job_id, user_id } = application;
 
-  // Better name handling - fallback to email if no name
   const getDisplayName = () => {
     if (profiles?.first_name || profiles?.last_name) {
       return `${profiles.first_name || ""} ${profiles.last_name || ""}`.trim();
-    }
-    if (profiles?.email) {
-      return profiles.email.split("@")[0]; // Use email prefix as name
     }
     return "Unknown Applicant";
   };
@@ -23,9 +21,6 @@ const ApplicationCard = ({ application, onClick }) => {
       const first = profiles.first_name?.charAt(0) || "";
       const last = profiles.last_name?.charAt(0) || "";
       return (first + last).toUpperCase() || "?";
-    }
-    if (profiles?.email) {
-      return profiles.email.charAt(0).toUpperCase();
     }
     return "?";
   };
@@ -42,9 +37,13 @@ const ApplicationCard = ({ application, onClick }) => {
     });
   };
 
+  const handleClick = () => {
+    navigate(`/dashboard/applications/${job_id}/${user_id}`);
+  };
+
   return (
     <div
-      onClick={onClick}
+      onClick={handleClick}
       className={`${
         isRejected ? "bg-slate-50 opacity-80 hover:opacity-100" : "bg-white"
       } border border-slate-200 rounded-xl p-5 transition-all hover:border-brand-green hover:shadow-md flex items-center justify-between cursor-pointer group`}
@@ -87,9 +86,6 @@ const ApplicationCard = ({ application, onClick }) => {
             </span>
           </div>
           <p className="text-sm text-slate-500 mt-1">
-            {profiles?.email && (
-              <span className="text-slate-400 mr-2">{profiles.email}</span>
-            )}
             Applied for{" "}
             <span
               className={`font-semibold ${
@@ -119,7 +115,7 @@ const ApplicationCard = ({ application, onClick }) => {
             {formatDate(created_at)}
           </p>
         </div>
-        <button
+        <div
           className={`w-8 h-8 rounded-full ${
             isRejected ? "bg-slate-200" : "bg-slate-50"
           } flex items-center justify-center text-slate-400 group-hover:text-brand-green group-hover:bg-green-50 transition`}
@@ -137,7 +133,7 @@ const ApplicationCard = ({ application, onClick }) => {
               d="M9 5l7 7-7 7"
             />
           </svg>
-        </button>
+        </div>
       </div>
     </div>
   );

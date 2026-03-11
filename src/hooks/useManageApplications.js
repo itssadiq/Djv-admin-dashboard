@@ -1,11 +1,7 @@
 // src/hooks/useManageApplications.js
 
 import { useState, useMemo, useCallback } from "react";
-import {
-  useGetApplicationsQuery,
-  useUpdateApplicationStatusMutation,
-  useDeleteApplicationMutation,
-} from "../services/applicationsApi";
+import { useGetApplicationsQuery } from "../services/applicationsApi";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -16,10 +12,6 @@ export const useManageApplications = () => {
     isError,
     error,
   } = useGetApplicationsQuery();
-  const [updateStatus, { isLoading: isUpdating }] =
-    useUpdateApplicationStatusMutation();
-  const [deleteApplication, { isLoading: isDeleting }] =
-    useDeleteApplicationMutation();
 
   // Filter states
   const [searchQuery, setSearchQuery] = useState("");
@@ -28,10 +20,6 @@ export const useManageApplications = () => {
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-
-  // Modal states
-  const [selectedApplication, setSelectedApplication] = useState(null);
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   // Get unique jobs for filter dropdown
   const jobOptions = useMemo(() => {
@@ -54,12 +42,9 @@ export const useManageApplications = () => {
     return applications.filter((app) => {
       const fullName =
         `${app.profiles?.first_name || ""} ${app.profiles?.last_name || ""}`.toLowerCase();
-      const email = app.profiles?.email?.toLowerCase() || "";
 
       const matchesSearch =
-        searchQuery === "" ||
-        fullName.includes(searchQuery.toLowerCase()) ||
-        email.includes(searchQuery.toLowerCase());
+        searchQuery === "" || fullName.includes(searchQuery.toLowerCase());
 
       const matchesJob = jobFilter === "" || app.job_id === jobFilter;
 
@@ -101,58 +86,12 @@ export const useManageApplications = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
-  // Open detail modal
-  const openDetailModal = useCallback((application) => {
-    setSelectedApplication(application);
-    setIsDetailModalOpen(true);
-  }, []);
-
-  // Close detail modal
-  const closeDetailModal = useCallback(() => {
-    setSelectedApplication(null);
-    setIsDetailModalOpen(false);
-  }, []);
-
-  // Update status
-  const handleUpdateStatus = useCallback(
-    async (jobId, userId, newStatus) => {
-      try {
-        await updateStatus({ jobId, userId, status: newStatus }).unwrap();
-        return true;
-      } catch (err) {
-        console.error("Failed to update status:", err);
-        return false;
-      }
-    },
-    [updateStatus],
-  );
-
-  // Delete application
-  const handleDeleteApplication = useCallback(
-    async (jobId, userId) => {
-      try {
-        await deleteApplication({ jobId, userId }).unwrap();
-        closeDetailModal();
-        return true;
-      } catch (err) {
-        console.error("Failed to delete application:", err);
-        return false;
-      }
-    },
-    [deleteApplication, closeDetailModal],
-  );
-
   return {
-    // Data
     applications: paginatedApplications,
     totalApplications: filteredApplications.length,
     isLoading,
     isError,
     error,
-    isUpdating,
-    isDeleting,
-
-    // Filters
     searchQuery,
     setSearchQuery: handleFilterChange(setSearchQuery),
     jobFilter,
@@ -161,20 +100,8 @@ export const useManageApplications = () => {
     setStatusFilter: handleFilterChange(setStatusFilter),
     jobOptions,
     clearFilters,
-
-    // Pagination
     currentPage,
     totalPages,
     handlePageChange,
-
-    // Modal
-    selectedApplication,
-    isDetailModalOpen,
-    openDetailModal,
-    closeDetailModal,
-
-    // Actions
-    handleUpdateStatus,
-    handleDeleteApplication,
   };
 };
