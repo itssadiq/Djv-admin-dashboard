@@ -18,127 +18,87 @@ const EXPERIENCE_LEVELS = [
   "Lead",
   "Executive",
 ];
-const JOB_STATUSES = ["active", "closed"];
-const MAX_FILE_SIZE = 2 * 1024 * 1024;
-const ACCEPTED_IMAGE_TYPES = [
-  "image/jpeg",
-  "image/png",
-  "image/svg+xml",
-  "image/webp",
-];
+const JOB_STATUSES = ["active", "closed"]; // Defined here...
 
 const editJobSchema = z
   .object({
     title: z
       .string()
       .trim()
-      .min(1, "Job title is required")
       .min(3, "Job title must be at least 3 characters")
-      .max(100, "Job title cannot exceed 100 characters"),
-
+      .max(100),
     company_name: z
       .string()
       .trim()
-      .min(1, "Company name is required")
       .min(2, "Company name must be at least 2 characters")
-      .max(100, "Company name cannot exceed 100 characters"),
-
+      .max(100),
     industry: z
       .string()
       .trim()
-      .min(1, "Industry is required")
       .min(2, "Industry must be at least 2 characters")
-      .max(50, "Industry cannot exceed 50 characters"),
-
-    company_logo: z
-      .custom()
-      .optional()
-      .refine((file) => !file || file instanceof File, "Invalid file")
-      .refine(
-        (file) => !file || file.size <= MAX_FILE_SIZE,
-        "File size must be less than 2MB",
-      )
-      .refine(
-        (file) => !file || ACCEPTED_IMAGE_TYPES.includes(file.type),
-        "Only PNG, JPG, SVG or WebP formats are accepted",
-      ),
-
+      .max(50),
+    company_logo: z.any().optional(),
     job_type: z
       .string()
-      .min(1, "Please select a job type")
-      .refine(
-        (val) => JOB_TYPES.includes(val),
-        "Please select a valid job type",
-      ),
-
+      .refine((val) => JOB_TYPES.includes(val), "Select valid job type"),
     experience_level: z
       .string()
-      .min(1, "Please select an experience level")
-      .refine(
-        (val) => EXPERIENCE_LEVELS.includes(val),
-        "Please select a valid experience level",
+      .refine((val) => EXPERIENCE_LEVELS.includes(val), "Select valid level"),
+    location: z.string().trim().min(2, "Location is required"),
+    skills: z.union([
+      z.array(z.string()),
+      z.string().transform((val) =>
+        val
+          .split(",")
+          .map((s) => s.trim())
+          .filter((s) => s.length > 0),
       ),
-
-    location: z
-      .string()
-      .trim()
-      .min(1, "Location is required")
-      .min(2, "Location must be at least 2 characters")
-      .max(100, "Location cannot exceed 100 characters"),
-
-    skills: z
-      .union([
-        z.array(z.string()),
-        z.string().transform((val) =>
-          val
-            .split(",")
-            .map((skill) => skill.trim())
-            .filter((skill) => skill.length > 0),
-        ),
-      ])
-      .refine((skills) => skills.length >= 1, "Please add at least one skill")
-      .refine(
-        (skills) => skills.length <= 15,
-        "Cannot add more than 15 skills",
-      ),
-
-    description: z
-      .string()
-      .trim()
-      .min(1, "Job description is required")
-      .min(50, "Job description must be at least 50 characters")
-      .max(5000, "Job description cannot exceed 5000 characters"),
-
-    salary_min: z
-      .union([z.string(), z.number()])
-      .transform((val) => Number(val))
-      .refine((val) => !isNaN(val), "Please enter a valid number")
-      .refine((val) => val >= 0, "Salary cannot be negative")
-      .refine((val) => val <= 10000000, "Please enter a realistic salary"),
-
-    salary_max: z
-      .union([z.string(), z.number()])
-      .transform((val) => Number(val))
-      .refine((val) => !isNaN(val), "Please enter a valid number")
-      .refine((val) => val >= 0, "Salary cannot be negative")
-      .refine((val) => val <= 10000000, "Please enter a realistic salary"),
-
+    ]),
+    description: z.string().trim().min(50, "Min 50 characters required"),
+    salary_min: z.any().optional(),
+    salary_max: z.any().optional(),
+    hourly_wage: z.any().optional(),
     is_featured: z.boolean().default(false),
-
     status: z
       .string()
-      .refine(
-        (val) => JOB_STATUSES.includes(val),
-        "Please select a valid status",
-      ),
+      .refine((val) => JOB_STATUSES.includes(val), "Select valid status"),
   })
-  .refine((data) => data.salary_max >= data.salary_min, {
-    message: "Maximum salary must be greater than or equal to minimum salary",
-    path: ["salary_max"],
+  .superRefine((data, ctx) => {
+    if (data.job_type === "Workstudent") {
+      const wage = Number(data.hourly_wage);
+      if (!data.hourly_wage || isNaN(wage) || wage <= 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Valid hourly wage required",
+          path: ["hourly_wage"],
+        });
+      }
+    } else {
+      if (!data.salary_min)
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Min required",
+          path: ["salary_min"],
+        });
+      if (!data.salary_max)
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Max required",
+          path: ["salary_max"],
+        });
+      if (Number(data.salary_min) > Number(data.salary_max)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Max must be > Min",
+          path: ["salary_max"],
+        });
+      }
+    }
   });
 
+// ADD THESE EXPORT LINES AT THE BOTTOM
+export const jobStatuses = JOB_STATUSES;
 export const jobTypes = JOB_TYPES;
 export const experienceLevels = EXPERIENCE_LEVELS;
-export const jobStatuses = JOB_STATUSES;
 
 export default editJobSchema;

@@ -21,39 +21,27 @@ export const usePostJob = () => {
   const form = useForm({
     resolver: zodResolver(postJobSchema),
     defaultValues: {
-      is_remote: false,
+      job_type: "",
+      experience_level: "",
       is_featured: false,
+      salary_min: "",
+      salary_max: "",
+      hourly_wage: "",
     },
   });
 
-  const { reset, setValue } = form;
-
-  const handleLogoChange = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setValue("company_logo", file);
-      setLogoPreview(URL.createObjectURL(file));
-    }
-  };
-
-  const resetForm = useCallback(() => {
-    reset();
-    setLogoPreview(null);
-  }, [reset]);
-
   const scrollToTop = useCallback(() => {
-    // Method 1: Scroll the window
-    window.scrollTo({ top: 0, behavior: "smooth" });
-
-    // Method 2: Scroll the form container if ref is available
+    // 1. Try scrolling to the specific form container ref
     if (formContainerRef.current) {
       formContainerRef.current.scrollIntoView({
         behavior: "smooth",
         block: "start",
       });
     }
+    // 2. Fallback: Scroll the entire window
+    window.scrollTo({ top: 0, behavior: "smooth" });
 
-    // Method 3: Fallback - scroll the main content area
+    // 3. Admin Layout specific: Scroll the main content area if standard window scroll fails
     const mainContent = document.querySelector("main");
     if (mainContent) {
       mainContent.scrollTo({ top: 0, behavior: "smooth" });
@@ -65,64 +53,50 @@ export const usePostJob = () => {
       setSubmitError(null);
       setSubmitSuccess(false);
 
-      // Upload logo if provided
       let logoUrl = null;
-      if (data.company_logo) {
+      if (data.company_logo && data.company_logo instanceof File) {
         const result = await uploadLogo(data.company_logo).unwrap();
         logoUrl = result;
       }
 
-      // Destructure only needed fields
-      const {
-        title,
-        company_name,
-        industry,
-        job_type,
-        experience_level,
-        location,
-        skills,
-        description,
-        salary_min,
-        salary_max,
-        is_remote,
-        is_featured,
-      } = data;
+      const isWorkstudent = data.job_type === "Workstudent";
 
-      // Prepare job data
       const jobData = {
-        title,
-        company_name,
-        industry,
+        title: data.title,
+        company_name: data.company_name,
+        industry: data.industry,
         company_logo: logoUrl,
-        job_type,
-        experience_level,
-        location,
-        skills,
-        description,
-        salary_min,
-        salary_max,
-        is_remote,
-        is_featured,
+        job_type: data.job_type,
+        experience_level: data.experience_level,
+        location: data.location,
+        skills: data.skills,
+        description: data.description,
+        is_featured: data.is_featured,
         status: "active",
+        salary_min: isWorkstudent ? null : Number(data.salary_min),
+        salary_max: isWorkstudent ? null : Number(data.salary_max),
+        hourly_wage: isWorkstudent ? Number(data.hourly_wage) : null,
       };
 
-      // Create job
       await createJob(jobData).unwrap();
 
-      // Success - reset form first, then scroll, then show message
-      resetForm();
+      // SUCCESS ACTIONS
+      form.reset();
+      setLogoPreview(null);
 
-      // Use setTimeout to ensure DOM has updated before scrolling
+      // Trigger the scroll slightly before showing the message
+      scrollToTop();
+
+      // Delay the success message slightly to ensure scroll has started
       setTimeout(() => {
-        scrollToTop();
         setSubmitSuccess(true);
       }, 100);
 
-      // Auto-hide success message
+      // Auto-hide success message after 5 seconds
       setTimeout(() => setSubmitSuccess(false), 5000);
     } catch (error) {
       setSubmitError(error.message || "Failed to post job. Please try again.");
-      setTimeout(() => scrollToTop(), 100);
+      scrollToTop(); // Also scroll up to show the error message
     }
   };
 
@@ -134,7 +108,13 @@ export const usePostJob = () => {
     submitError,
     setSubmitSuccess,
     setSubmitError,
-    handleLogoChange,
+    handleLogoChange: (e) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        form.setValue("company_logo", file);
+        setLogoPreview(URL.createObjectURL(file));
+      }
+    },
     onSubmit,
   };
 };
