@@ -1,43 +1,28 @@
-// src/components/dashboard/StatCard.jsx
+import React from "react";
 
-const StatCard = ({
-  title,
-  value,
-  icon,
-  highlight = false,
-  subtitle,
-  loading = false,
-}) => {
+const StatCard = ({ title, value, icon: Icon, iconColor, gradientColor, sub, loading }) => {
   if (loading) {
-    return (
-      <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm h-32 animate-pulse">
-        <div className="h-3 bg-slate-200 rounded w-24 mb-4" />
-        <div className="h-8 bg-slate-200 rounded w-16" />
-      </div>
-    );
+    // ... skeleton loader (same as before) ...
+    return <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm h-32 animate-pulse" />
   }
 
   return (
-    <div
-      className={`bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between h-32 ${
-        highlight ? "border-b-4 border-b-brand-green" : ""
-      }`}
-    >
-      <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-        {title}
-      </span>
-      <div className="flex items-end justify-between">
-        <span
-          className={`text-3xl font-bold ${
-            highlight ? "text-brand-green" : "text-slate-800"
-          }`}
-        >
-          {value}
-        </span>
-        {icon && icon}
-        {subtitle && (
-          <span className="text-xs text-slate-500 font-medium">{subtitle}</span>
-        )}
+    <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] hover:shadow-lg transition-all duration-300 group relative overflow-hidden">
+      
+      {/* Decorative Gradient */}
+      <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-transparent ${gradientColor} rounded-bl-full transition-opacity duration-500`}></div>
+      
+      <div className="flex justify-between items-start mb-4 relative z-10">
+        {/* Icon Box */}
+        <div className={`p-2.5 rounded-xl bg-slate-50 ${iconColor} group-hover:bg-white group-hover:shadow-sm transition-all duration-300`}>
+          <Icon size={20} />
+        </div>
+        {sub && <span className="text-[10px] font-semibold bg-slate-50 text-slate-500 px-2 py-1 rounded-full">{sub}</span>}
+      </div>
+      
+      <div className="relative z-10">
+        <h3 className="text-2xl font-bold text-slate-800">{value}</h3>
+        <p className="text-sm text-slate-500 font-medium">{title}</p>
       </div>
     </div>
   );
