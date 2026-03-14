@@ -14,8 +14,7 @@ import Dashboard from "./pages/Dashboard";
 import PostJob from "./pages/PostJob";
 import ManageJobs from "./pages/ManageJobs";
 import Applications from "./pages/Applications";
-import ApplicationDetail from "./pages/ApplicationDetail"; // Add this
-import Industries from "./pages/Industries";
+import ApplicationDetail from "./pages/ApplicationDetail";
 import AdminLayout from "./pages/AdminLayout";
 import EditJob from "./pages/EditJob";
 
@@ -42,8 +41,6 @@ function App() {
                 path="/dashboard/applications/:jobId/:userId"
                 element={<ApplicationDetail />}
               />{" "}
-              {/* Add this */}
-              <Route path="/dashboard/industries" element={<Industries />} />
             </Route>
           </Route>
 

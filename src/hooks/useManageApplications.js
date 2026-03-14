@@ -17,12 +17,14 @@ export const useManageApplications = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [jobFilter, setJobFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [industryFilter, setIndustryFilter] = useState(""); // New Filter
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Get unique jobs for filter dropdown
-  const jobOptions = useMemo(() => {
+  // Get unique filter options
+  const filterOptions = useMemo(() => {
+    // Unique jobs
     const jobs = applications.map((app) => ({
       id: app.jobs?.id,
       title: app.jobs?.title,
@@ -34,7 +36,16 @@ export const useManageApplications = () => {
         job.id && self.findIndex((j) => j.id === job.id) === index,
     );
 
-    return uniqueJobs;
+    // Unique industries (NEW)
+    const industries = [
+      ...new Set(
+        applications
+          .map((app) => app.jobs?.industry)
+          .filter((industry) => industry), // Remove null/undefined
+      ),
+    ].sort();
+
+    return { jobs: uniqueJobs, industries };
   }, [applications]);
 
   // Filter applications
@@ -42,17 +53,24 @@ export const useManageApplications = () => {
     return applications.filter((app) => {
       const fullName =
         `${app.profiles?.first_name || ""} ${app.profiles?.last_name || ""}`.toLowerCase();
+      const email = app.profiles?.email?.toLowerCase() || "";
 
       const matchesSearch =
-        searchQuery === "" || fullName.includes(searchQuery.toLowerCase());
+        searchQuery === "" ||
+        fullName.includes(searchQuery.toLowerCase()) ||
+        email.includes(searchQuery.toLowerCase());
 
       const matchesJob = jobFilter === "" || app.job_id === jobFilter;
 
       const matchesStatus = statusFilter === "" || app.status === statusFilter;
 
-      return matchesSearch && matchesJob && matchesStatus;
+      // New Industry Filter Logic
+      const matchesIndustry =
+        industryFilter === "" || app.jobs?.industry === industryFilter;
+
+      return matchesSearch && matchesJob && matchesStatus && matchesIndustry;
     });
-  }, [applications, searchQuery, jobFilter, statusFilter]);
+  }, [applications, searchQuery, jobFilter, statusFilter, industryFilter]);
 
   // Pagination
   const totalPages = Math.ceil(filteredApplications.length / ITEMS_PER_PAGE);
@@ -72,11 +90,12 @@ export const useManageApplications = () => {
     [],
   );
 
-  // Clear filters
+  // Clear all filters
   const clearFilters = useCallback(() => {
     setSearchQuery("");
     setJobFilter("");
     setStatusFilter("");
+    setIndustryFilter(""); // Clear industry
     setCurrentPage(1);
   }, []);
 
@@ -92,14 +111,22 @@ export const useManageApplications = () => {
     isLoading,
     isError,
     error,
+
+    // Filters
     searchQuery,
     setSearchQuery: handleFilterChange(setSearchQuery),
     jobFilter,
     setJobFilter: handleFilterChange(setJobFilter),
     statusFilter,
     setStatusFilter: handleFilterChange(setStatusFilter),
-    jobOptions,
+    industryFilter,
+    setIndustryFilter: handleFilterChange(setIndustryFilter), // Export new setter
+
+    // Options
+    filterOptions, // Export combined options
     clearFilters,
+
+    // Pagination
     currentPage,
     totalPages,
     handlePageChange,
