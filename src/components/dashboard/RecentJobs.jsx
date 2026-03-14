@@ -7,7 +7,7 @@ const RecentJobs = ({ jobs, isLoading }) => {
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-scroll h-auto">
         <div className="p-6 border-b border-slate-100">
           <div className="h-5 bg-slate-200 rounded w-32 animate-pulse" />
         </div>

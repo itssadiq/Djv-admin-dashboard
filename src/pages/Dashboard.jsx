@@ -1,81 +1,58 @@
-// src/pages/Dashboard.jsx
-
 import { useDashboardStats } from "../hooks/useDashboardStats";
 import {
   StatsGrid,
-  QuickStats,
   RecentJobs,
   TopIndustries,
   TopCompanies,
   JobTypesChart,
 } from "../components/dashboard";
+import RecentActivity from "../components/dashboard/RecentActivity";
+import ApplicationFunnel from "../components/dashboard/ApplicationFunnel";
+import TopSkills from "../components/dashboard/TopSkills";
+import { Loader2 } from "lucide-react";
 
 const Dashboard = () => {
-  const { stats, isLoading, isError, error } = useDashboardStats();
+  const { stats, isLoading, isError } = useDashboardStats();
 
-  if (isError) {
-    return (
-      <section className="animate-fade-in">
-        <div className="bg-red-50 border border-red-200 rounded-xl p-8 text-center">
-          <svg
-            className="w-12 h-12 text-red-400 mx-auto mb-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="1.5"
-              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          <h3 className="text-lg font-semibold text-red-800 mb-1">
-            Failed to load dashboard
-          </h3>
-          <p className="text-sm text-red-600">
-            {error?.message || "Something went wrong. Please try again."}
-          </p>
-        </div>
-      </section>
-    );
-  }
+  if (isError) return <div className="p-8 text-center text-red-500 font-bold">Error loading dashboard.</div>;
+  if (isLoading) return <div className="h-screen flex items-center justify-center"><Loader2 className="animate-spin text-brand-green w-8 h-8" /></div>;
 
   return (
-    <section className="animate-fade-in space-y-6">
-      {/* Main Stats */}
-      <StatsGrid stats={stats} isLoading={isLoading} />
+    <section className="space-y-8 animate-fade-in pb-20 max-w-[1600px] mx-auto">
+      
+      {/* 1. KEY METRICS (Full Width) */}
+      <StatsGrid stats={stats} />
 
-      {/* Quick Stats */}
-      <QuickStats stats={stats} isLoading={isLoading} />
-
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Recent Jobs - Takes 2 columns */}
-        <div className="lg:col-span-2">
-          <RecentJobs jobs={stats.recentJobs} isLoading={isLoading} />
+      {/* 2. ACTIVITY ROW (60% Jobs | 40% Activity) */}
+      <div className="grid grid-cols-1 xl:grid-cols-5 gap-8 items-stretch">
+        
+        {/* Recent Jobs (3/5 = 60%) */}
+        <div className="xl:col-span-3 h-full">
+           <RecentJobs jobs={stats.recentJobs} />
         </div>
 
-        {/* Top Industries */}
-        <div>
-          <TopIndustries
-            industries={stats.topIndustries}
-            isLoading={isLoading}
-          />
+        {/* Recent Activity (2/5 = 40%) */}
+        <div className="xl:col-span-2 h-full min-h-[500px]">
+           <RecentActivity applications={stats.recentApplications} />
         </div>
+
       </div>
 
-      {/* Bottom Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Job Types Chart */}
-        <JobTypesChart jobsByType={stats.jobsByType} isLoading={isLoading} />
-
-        {/* Top Companies */}
-        <TopCompanies companies={stats.topCompanies} isLoading={isLoading} />
+      {/* 3. INSIGHTS ROW (3 Equal Columns) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+         <TopSkills skills={stats.topSkills} />
+         <TopIndustries industries={stats.topIndustries} />
+         <TopCompanies companies={stats.topCompanies} />
       </div>
+
+      {/* 4. BOTTOM ROW (50% Funnel | 50% Types) */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+         <ApplicationFunnel stats={stats.applicationStats} />
+         <JobTypesChart jobsByType={stats.jobsByType} />
+      </div>
+
     </section>
   );
 };
 
 export default Dashboard;
-  
