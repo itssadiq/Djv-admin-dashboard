@@ -15,43 +15,19 @@ const ApplicationFilters = ({
   setJobFilter,
   statusFilter,
   setStatusFilter,
-  jobOptions,
+  industryFilter, // New Prop
+  setIndustryFilter, // New Prop
+  filterOptions, // Contains jobs & industries
   clearFilters,
 }) => {
-  const hasActiveFilters = searchQuery || jobFilter || statusFilter;
+  const hasActiveFilters =
+    searchQuery || jobFilter || statusFilter || industryFilter;
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {/* Job Filter */}
-        <select
-          value={jobFilter}
-          onChange={(e) => setJobFilter(e.target.value)}
-          className={selectClass}
-        >
-          <option value="">All Jobs</option>
-          {jobOptions.map((job) => (
-            <option key={job.id} value={job.id}>
-              {job.title} - {job.company}
-            </option>
-          ))}
-        </select>
-
-        {/* Status Filter */}
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className={selectClass}
-        >
-          <option value="">All Statuses</option>
-          {APPLICATION_STATUSES.map((status) => (
-            <option key={status} value={status}>
-              {STATUS_CONFIG[status].label}
-            </option>
-          ))}
-        </select>
-
-        {/* Search */}
+      {/* 5-column grid for filters */}
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        {/* Search (Spans 2 columns) */}
         <div className="relative md:col-span-2">
           <input
             type="text"
@@ -74,9 +50,51 @@ const ApplicationFilters = ({
             />
           </svg>
         </div>
+
+        {/* Job Filter */}
+        <select
+          value={jobFilter}
+          onChange={(e) => setJobFilter(e.target.value)}
+          className={selectClass}
+        >
+          <option value="">All Jobs</option>
+          {filterOptions.jobs.map((job) => (
+            <option key={job.id} value={job.id}>
+              {job.title} - {job.company}
+            </option>
+          ))}
+        </select>
+
+        {/* Industry Filter (NEW) */}
+        <select
+          value={industryFilter}
+          onChange={(e) => setIndustryFilter(e.target.value)}
+          className={selectClass}
+        >
+          <option value="">All Industries</option>
+          {filterOptions.industries.map((industry) => (
+            <option key={industry} value={industry}>
+              {industry}
+            </option>
+          ))}
+        </select>
+
+        {/* Status Filter */}
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className={selectClass}
+        >
+          <option value="">All Statuses</option>
+          {APPLICATION_STATUSES.map((status) => (
+            <option key={status} value={status}>
+              {STATUS_CONFIG[status].label}
+            </option>
+          ))}
+        </select>
       </div>
 
-      {/* Clear Filters */}
+      {/* Clear Filters Button */}
       {hasActiveFilters && (
         <div className="flex justify-end">
           <button

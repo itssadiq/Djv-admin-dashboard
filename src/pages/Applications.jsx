@@ -20,7 +20,9 @@ const Applications = () => {
     setJobFilter,
     statusFilter,
     setStatusFilter,
-    jobOptions,
+    industryFilter, // New prop
+    setIndustryFilter, // New prop
+    filterOptions, // Updated prop (contains jobs & industries)
     clearFilters,
     currentPage,
     totalPages,
@@ -31,19 +33,7 @@ const Applications = () => {
     return (
       <section className="animate-fade-in">
         <div className="bg-red-50 border border-red-200 rounded-xl p-8 text-center">
-          <svg
-            className="w-12 h-12 text-red-400 mx-auto mb-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="1.5"
-              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
+          {/* Error SVG */}
           <h3 className="text-lg font-semibold text-red-800 mb-1">
             Failed to load applications
           </h3>
@@ -65,7 +55,9 @@ const Applications = () => {
         setJobFilter={setJobFilter}
         statusFilter={statusFilter}
         setStatusFilter={setStatusFilter}
-        jobOptions={jobOptions}
+        industryFilter={industryFilter} // Pass new prop
+        setIndustryFilter={setIndustryFilter} // Pass new prop
+        filterOptions={filterOptions} // Pass combined options
         clearFilters={clearFilters}
       />
 

@@ -13,7 +13,7 @@ import {
 const PostJob = () => {
   const {
     form,
-    formContainerRef,
+    formContainerRef, // Make sure this is destructured
     logoPreview,
     submitSuccess,
     submitError,
@@ -26,15 +26,18 @@ const PostJob = () => {
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
+    clearErrors,
     formState: { errors, isSubmitting },
   } = form;
 
   return (
     <section
-      ref={formContainerRef}
+      ref={formContainerRef} // ATTACH REF HERE
       className="animate-fade-in max-w-4xl mx-auto pb-8"
     >
-      {/* Success Message */}
+      {/* Success Message - Now visible immediately after scroll */}
       {submitSuccess && (
         <SuccessMessage
           message="Job added successfully!"
@@ -61,7 +64,13 @@ const PostJob = () => {
 
         <JobDetailsSection register={register} errors={errors} />
 
-        <CompensationSection register={register} errors={errors} />
+        <CompensationSection
+          register={register}
+          errors={errors}
+          watch={watch}
+          setValue={setValue}
+          clearErrors={clearErrors}
+        />
 
         <SubmitButton isSubmitting={isSubmitting} />
       </form>
